@@ -10,12 +10,6 @@ variable "name" {
     default = "ticket"
 }
 
-variable "tags" {
-  type        = map(string)
-  description = "공통 태그"
-  default     = {}
-}
-
 variable "azs" {
   type    = list(string)
   default = ["ap-northeast-2a", "ap-northeast-2c"]
