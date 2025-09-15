@@ -23,15 +23,15 @@ variable "azs" {
 
 variable "public_cidrs" {
   type    = list(string)
-  default = ["10.180.0.0/26", "10.180.0.64/26"]
+  default = ["10.180.0.0/24", "10.180.1.0/24"]
 }
 
 variable "private_app_cidrs" {
   type    = list(string)
-  default = ["10.180.1.0/25", "10.180.1.128/25"] 
+  default = ["10.180.4.0/22", "10.180.8.0/22"] 
 }
 
 variable "private_db_cidrs" {
   type    = list(string)
-  default = ["10.180.2.0/26", "10.180.2.64/26"] 
+  default = ["10.180.2.0/24", "10.180.3.0/24"] 
 }
