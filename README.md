@@ -23,8 +23,11 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
 ├── README.md                
 ├── backend.tf               # Terraform 백엔드 설정 (S3)
 ├── main.tf                  # 메인 Terraform 구성  
-├── atlantis.yaml            # 아틀란티스 프로젝트 구성
 ├── providers.tf             # 프로바이더 설정
+├── var.tf                   # 전역 변수 정의
+├── docs/                    # 문서화
+│   ├── dynamodb-spec.md    # DynamoDB 스펙 문서
+│   └── eventbridge-spec.md # EventBridge 스펙 문서
 └── modules/
     ├── ec2/                 # EC2 모듈
     │   ├── ec2.tf          # EC2 인스턴스 리소스 정의
@@ -36,6 +39,16 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
     │   ├── iam.tf          # EKS IAM 역할 및 정책
     │   ├── sg.tf           # EKS Security Group 정의
     │   └── var.tf          # EKS 모듈 변수
+    ├── dynamodb/            # DynamoDB 모듈
+    │   ├── dynamodb.tf     # DynamoDB 테이블 리소스 정의
+    │   ├── iam.tf          # DynamoDB IAM 역할 및 정책
+    │   ├── out.tf          # DynamoDB 모듈 출력
+    │   └── var.tf          # DynamoDB 모듈 변수
+    ├── eventbridge/        # EventBridge 모듈
+    │   ├── eventbridge.tf  # EventBridge 리소스 정의
+    │   ├── iam.tf          # EventBridge IAM 역할 및 정책
+    │   ├── out.tf          # EventBridge 모듈 출력
+    │   └── var.tf          # EventBridge 모듈 변수
     ├── rds/                 # RDS 모듈 (개발 예정)
     └── vpc/                 # VPC 모듈
         ├── out.tf          # VPC 모듈 출력
@@ -131,6 +144,36 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
 - `private_app_cidrs`: Private App 서브넷 CIDR 목록
 - `private_db_cidrs`: Private DB 서브넷 CIDR 목록
 
+### DynamoDB 모듈 (`modules/dynamodb/`)
+
+NoSQL 데이터베이스 인프라를 프로비저닝합니다:
+
+- DynamoDB 테이블 생성 및 설정
+- IAM 역할 및 정책 구성
+- Point-in-time 복구 및 암호화 설정
+- 자동 스케일링 및 모니터링
+
+**입력 변수**:
+- `table_name`: DynamoDB 테이블 이름
+- `billing_mode`: 청구 모드 (PAY_PER_REQUEST 또는 PROVISIONED)
+- `hash_key`: 해시 키 속성명
+- `range_key`: 범위 키 속성명 (선택사항)
+- `attributes`: 속성 정의 목록
+
+### EventBridge 모듈 (`modules/eventbridge/`)
+
+이벤트 기반 아키텍처를 위한 이벤트 버스를 프로비저닝합니다:
+
+- EventBridge 버스 생성
+- 이벤트 규칙 및 타겟 설정
+- IAM 역할 및 정책 구성
+- 이벤트 소스 및 타겟 연결
+
+**입력 변수**:
+- `bus_name`: EventBridge 버스 이름
+- `rules`: 이벤트 규칙 목록
+- `targets`: 이벤트 타겟 목록
+
 ### RDS 모듈 (`modules/rds/`)
 
 개발 예정 기능:
@@ -196,6 +239,13 @@ terraform validate
 3. **네트워크 연결 문제**
    - 보안 그룹 규칙 확인
    - 라우팅 테이블 설정 검증
+
+## 문서
+
+프로젝트의 상세한 스펙과 가이드는 `docs/` 폴더에서 확인할 수 있습니다:
+
+- [DynamoDB 스펙](docs/dynamodb-spec.md) - DynamoDB 테이블 설계 및 구성 가이드
+- [EventBridge 스펙](docs/eventbridge-spec.md) - EventBridge 이벤트 아키텍처 가이드
 
 ## 기여 가이드
 
