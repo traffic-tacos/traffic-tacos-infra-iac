@@ -19,19 +19,28 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
 ## 프로젝트 구조
 
 ```bash
-.
-├── main.tf                    # 메인 Terraform 구성
-├── providers.tf              # 프로바이더 설정
+
+├── README.md                
 ├── backend.tf               # Terraform 백엔드 설정 (S3)
-├── var.tf                   # 전역 변수 정의
+├── main.tf                  # 메인 Terraform 구성  
+├── atlantis.yaml            # 아틀란티스 프로젝트 구성
+├── providers.tf             # 프로바이더 설정
 └── modules/
-    ├── vpc/                 # VPC 모듈
-    │   ├── vpc.tf          # VPC 리소스 정의
-    │   ├── var.tf          # VPC 모듈 변수
-    │   ├── out.tf          # VPC 모듈 출력
-    │   └── README.md       # VPC 모듈 설명
-    └── rds/                 # RDS 모듈 (개발 예정)
-        └── README.md
+    ├── ec2/                 # EC2 모듈
+    │   ├── ec2.tf          # EC2 인스턴스 리소스 정의
+    │   ├── out.tf          # EC2 모듈 출력
+    │   ├── sg.tf           # Security Group 정의
+    │   └── var.tf          # EC2 모듈 변수
+    ├── eks/                 # EKS 모듈
+    │   ├── eks.tf          # EKS 클러스터 리소스 정의
+    │   ├── iam.tf          # EKS IAM 역할 및 정책
+    │   ├── sg.tf           # EKS Security Group 정의
+    │   └── var.tf          # EKS 모듈 변수
+    ├── rds/                 # RDS 모듈 (개발 예정)
+    └── vpc/                 # VPC 모듈
+        ├── out.tf          # VPC 모듈 출력
+        ├── var.tf          # VPC 모듈 변수
+        └── vpc.tf          # VPC 리소스 정의
 ```
 
 ## 네트워크 구성
@@ -46,9 +55,9 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
 
 | Tier | CIDR 범위 | 용도 |
 |------|-----------|------|
-| Public | 10.180.0.0/26, 10.180.0.64/26 | ALB, Bastion 호스트 |
-| Private App | 10.180.1.0/25, 10.180.1.128/25 | 애플리케이션 서버, EKS 노드 |
-| Private DB | 10.180.2.0/26, 10.180.2.64/26 | RDS, ElastiCache |
+| Public | 10.180.0.0/24, 10.180.1.0/24 | ALB, Bastion 호스트 |
+| Private App | 10.180.4.0/22, 10.180.8.0/22 | 애플리케이션 서버, EKS 노드 |
+| Private DB | 10.180.2.0/24, 10.180.3.0/24 | RDS, ElastiCache |
 
 ### 네트워킹 기능
 
@@ -134,9 +143,8 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
 ## 태그 정책
 
 모든 리소스는 다음과 같은 태그를 포함합니다:
-
+-  `Project` : ticket-traffic
 - `ManagedBy`: Terraform
-- `Environment`: 환경 식별자
 - 추가 사용자 정의 태그
 
 ## 보안 고려사항
