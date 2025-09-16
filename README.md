@@ -4,11 +4,18 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
 
 ## 아키텍처 개요
 
-이 프로젝트는 AWS 기반의 3-tier 아키텍처를 구성합니다:
+이 프로젝트는 AWS 기반의 3-tier 아키텍처를 구성하며, 마이크로서비스 패턴을 지원합니다:
 
 - **Public Tier**: 인터넷 게이트웨이를 통한 외부 접근이 가능한 서브넷
 - **Private App Tier**: 애플리케이션 서버를 위한 프라이빗 서브넷 (NAT 게이트웨이 통해 인터넷 접근)
 - **Private DB Tier**: 데이터베이스 서버를 위한 격리된 프라이빗 서브넷
+
+### 서비스 아키텍처
+
+현재 다음 마이크로서비스를 지원합니다:
+
+- **Ticket Service**: 티켓팅 시스템 (DynamoDB + EventBridge)
+- **Reservation Service**: 예약 시스템 (DynamoDB + EventBridge + TTL 지원)
 
 ## 지원되는 클라우드 프로바이더
 
@@ -26,8 +33,11 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
 ├── providers.tf             # 프로바이더 설정
 ├── var.tf                   # 전역 변수 정의
 ├── docs/                    # 문서화
-│   ├── dynamodb-spec.md    # DynamoDB 스펙 문서
-│   └── eventbridge-spec.md # EventBridge 스펙 문서
+│   ├── spec/               # 기술 스펙 문서
+│   │   ├── dynamodb-spec.md    # DynamoDB 스펙 문서
+│   │   └── eventbridge-spec.md # EventBridge 스펙 문서
+│   └── request/            # 요구사항 문서
+│       └── reservation-api-infrastructure-requirements.md
 └── modules/
     ├── ec2/                 # EC2 모듈
     │   ├── ec2.tf          # EC2 인스턴스 리소스 정의
@@ -146,33 +156,47 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
 
 ### DynamoDB 모듈 (`modules/dynamodb/`)
 
-NoSQL 데이터베이스 인프라를 프로비저닝합니다:
+마이크로서비스용 NoSQL 데이터베이스 인프라를 프로비저닝합니다:
 
-- DynamoDB 테이블 생성 및 설정
-- IAM 역할 및 정책 구성
-- Point-in-time 복구 및 암호화 설정
-- 자동 스케일링 및 모니터링
+- **6개 DynamoDB 테이블**: 티켓 서비스(2개) + 예약 서비스(4개)
+- **IAM 역할**: 애플리케이션, 읽기 전용, 예약 API 전용 역할
+- **보안 기능**: Point-in-time 복구, 서버 측 암호화, TTL 지원
+- **모니터링**: CloudWatch 알람 (읽기/쓰기 스로틀링 감지)
 
-**입력 변수**:
-- `table_name`: DynamoDB 테이블 이름
-- `billing_mode`: 청구 모드 (PAY_PER_REQUEST 또는 PROVISIONED)
-- `hash_key`: 해시 키 속성명
-- `range_key`: 범위 키 속성명 (선택사항)
-- `attributes`: 속성 정의 목록
+**배포된 테이블**:
+- `ticket-tickets`: 티켓 정보 (GSI 포함)
+- `ticket-ticket-events`: 티켓 이벤트 저장
+- `ticket-reservation-reservations`: 예약 정보 (GSI 포함)
+- `ticket-reservation-orders`: 주문 정보 (GSI 포함)
+- `ticket-reservation-idempotency`: 멱등성 보장 (TTL 활성화)
+- `ticket-reservation-outbox`: 아웃박스 패턴 이벤트
+
+**주요 변수**:
+- `tables`: 테이블 구성 목록 (속성, GSI, TTL 설정)
+- `name`: 리소스 접두사 (기본값: "ticket")
 
 ### EventBridge 모듈 (`modules/eventbridge/`)
 
-이벤트 기반 아키텍처를 위한 이벤트 버스를 프로비저닝합니다:
+마이크로서비스 간 이벤트 기반 통신을 위한 EventBridge 인프라를 프로비저닝합니다:
 
-- EventBridge 버스 생성
-- 이벤트 규칙 및 타겟 설정
-- IAM 역할 및 정책 구성
-- 이벤트 소스 및 타겟 연결
+- **2개 이벤트 버스**: 티켓 서비스 + 예약 서비스 (도메인별 분리)
+- **8개 이벤트 규칙**: 티켓(2개) + 예약(3개) + 스케줄러(1개) 이벤트 처리
+- **DLQ & 아카이브**: 실패 이벤트 처리 및 이력 보관
+- **IAM 역할**: 서비스 및 타겟 호출을 위한 권한 관리
 
-**입력 변수**:
-- `bus_name`: EventBridge 버스 이름
-- `rules`: 이벤트 규칙 목록
-- `targets`: 이벤트 타겟 목록
+**배포된 이벤트 버스**:
+- `ticket-ticket-events`: 티켓 서비스 이벤트
+- `ticket-reservation-events`: 예약 서비스 이벤트
+
+**주요 이벤트 규칙**:
+- 티켓: 생성, 상태 변경
+- 예약: 생성, 상태 변경, 만료 스케줄러
+
+**주요 변수**:
+- `custom_bus_name`: 기본 이벤트 버스 이름
+- `additional_buses`: 추가 이벤트 버스 목록
+- `rules`: 이벤트 규칙 및 타겟 구성
+- `enable_dlq`: DLQ 활성화 (기본값: true)
 
 ### RDS 모듈 (`modules/rds/`)
 
@@ -244,8 +268,39 @@ terraform validate
 
 프로젝트의 상세한 스펙과 가이드는 `docs/` 폴더에서 확인할 수 있습니다:
 
-- [DynamoDB 스펙](docs/dynamodb-spec.md) - DynamoDB 테이블 설계 및 구성 가이드
-- [EventBridge 스펙](docs/eventbridge-spec.md) - EventBridge 이벤트 아키텍처 가이드
+**기술 스펙 문서 (`docs/spec/`)**:
+- [DynamoDB 스펙](docs/spec/dynamodb-spec.md) - DynamoDB 테이블 설계 및 구성 가이드
+- [EventBridge 스펙](docs/spec/eventbridge-spec.md) - EventBridge 이벤트 아키텍처 가이드
+
+**요구사항 문서 (`docs/request/`)**:
+- [Reservation API 인프라 요구사항](docs/request/reservation-api-infrastructure-requirements.md) - 예약 시스템 인프라 요구사항
+
+## 배포된 인프라 현황
+
+### 🗄️ DynamoDB 테이블 (6개)
+```bash
+ticket-tickets                    # 티켓 정보 (GSI1 포함)
+ticket-ticket-events             # 티켓 이벤트
+ticket-reservation-reservations  # 예약 정보 (GSI1 포함)
+ticket-reservation-orders        # 주문 정보 (GSI1 포함)
+ticket-reservation-idempotency   # 멱등성 테이블 (TTL 활성화)
+ticket-reservation-outbox        # 아웃박스 이벤트
+```
+
+### 🚌 EventBridge 버스 (2개)
+```bash
+ticket-ticket-events      # 티켓 서비스 이벤트
+ticket-reservation-events # 예약 서비스 이벤트
+```
+
+### 👤 IAM 역할 (5개)
+```bash
+ticket-dynamodb-application-role    # 전체 DynamoDB 접근
+ticket-dynamodb-readonly-role       # 읽기 전용 접근
+ticket-reservation-api-service-role # 예약 API 전용 역할
+ticket-eventbridge-service-role     # EventBridge 서비스 역할
+ticket-eventbridge-target-role      # EventBridge 타겟 역할
+```
 
 ## 기여 가이드
 

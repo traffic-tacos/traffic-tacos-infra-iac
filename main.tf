@@ -25,6 +25,12 @@ module "dynamodb" {
       name     = "tickets"
       hash_key = "pk"
       range_key = "sk"
+      attributes = [
+        { name = "pk", type = "S" },
+        { name = "sk", type = "S" },
+        { name = "gsi1pk", type = "S" },
+        { name = "gsi1sk", type = "S" }
+      ]
       global_secondary_indexes = [
         {
           name               = "GSI1"
@@ -38,12 +44,22 @@ module "dynamodb" {
       name     = "ticket-events"
       hash_key = "pk"
       range_key = "sk"
+      attributes = [
+        { name = "pk", type = "S" },
+        { name = "sk", type = "S" }
+      ]
     },
     # Reservation service tables
     {
       name     = "reservation-reservations"
       hash_key = "pk"
       range_key = "sk"
+      attributes = [
+        { name = "pk", type = "S" },
+        { name = "sk", type = "S" },
+        { name = "gsi1pk", type = "S" },
+        { name = "gsi1sk", type = "S" }
+      ]
       global_secondary_indexes = [
         {
           name               = "GSI1"
@@ -57,6 +73,12 @@ module "dynamodb" {
       name     = "reservation-orders"
       hash_key = "pk"
       range_key = "sk"
+      attributes = [
+        { name = "pk", type = "S" },
+        { name = "sk", type = "S" },
+        { name = "gsi1pk", type = "S" },
+        { name = "gsi1sk", type = "S" }
+      ]
       global_secondary_indexes = [
         {
           name               = "GSI1"
@@ -71,11 +93,18 @@ module "dynamodb" {
       hash_key      = "pk"
       ttl_enabled   = true
       ttl_attribute = "ttl"
+      attributes = [
+        { name = "pk", type = "S" }
+      ]
     },
     {
       name     = "reservation-outbox"
       hash_key = "pk"
       range_key = "sk"
+      attributes = [
+        { name = "pk", type = "S" },
+        { name = "sk", type = "S" }
+      ]
     }
   ]
 }
