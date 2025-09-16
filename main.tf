@@ -12,6 +12,15 @@ module "eks" {
 
 module  "ec2" {
   source = "./modules/ec2"
-  vpc_id = module.vpc.vpc_id 
+  vpc_id = module.vpc.vpc_id
   public_subnet = module.vpc.public_subnet
+}
+
+module "dynamodb" {
+  source = "./modules/dynamodb"
+}
+
+module "eventbridge" {
+  source = "./modules/eventbridge"
+  dynamodb_table_arns = values(module.dynamodb.table_arns)
 }
