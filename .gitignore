@@ -30,4 +30,4 @@ secret/*
 # ===========================================
 
 # Cursor IDE 설정 파일들
-.cursor/
+.cursor/CLAUDE.md
