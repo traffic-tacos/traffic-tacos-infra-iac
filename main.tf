@@ -18,6 +18,66 @@ module  "ec2" {
 
 module "dynamodb" {
   source = "./modules/dynamodb"
+
+  tables = [
+    # Ticket service tables
+    {
+      name     = "tickets"
+      hash_key = "pk"
+      range_key = "sk"
+      global_secondary_indexes = [
+        {
+          name               = "GSI1"
+          hash_key          = "gsi1pk"
+          range_key         = "gsi1sk"
+          projection_type   = "ALL"
+        }
+      ]
+    },
+    {
+      name     = "ticket-events"
+      hash_key = "pk"
+      range_key = "sk"
+    },
+    # Reservation service tables
+    {
+      name     = "reservation-reservations"
+      hash_key = "pk"
+      range_key = "sk"
+      global_secondary_indexes = [
+        {
+          name               = "GSI1"
+          hash_key          = "gsi1pk"
+          range_key         = "gsi1sk"
+          projection_type   = "ALL"
+        }
+      ]
+    },
+    {
+      name     = "reservation-orders"
+      hash_key = "pk"
+      range_key = "sk"
+      global_secondary_indexes = [
+        {
+          name               = "GSI1"
+          hash_key          = "gsi1pk"
+          range_key         = "gsi1sk"
+          projection_type   = "ALL"
+        }
+      ]
+    },
+    {
+      name          = "reservation-idempotency"
+      hash_key      = "pk"
+      ttl_enabled   = true
+      ttl_attribute = "ttl"
+    },
+    {
+      name     = "reservation-outbox"
+      hash_key = "pk"
+      range_key = "sk"
+    }
+  ]
 }
 
 module "eventbridge" {

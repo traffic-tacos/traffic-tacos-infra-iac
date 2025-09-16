@@ -6,6 +6,17 @@ resource "aws_cloudwatch_event_bus" "custom_bus" {
   }
 }
 
+resource "aws_cloudwatch_event_bus" "additional_buses" {
+  for_each = { for bus in var.additional_buses : bus.name => bus }
+
+  name = "${var.name}-${each.value.name}"
+
+  tags = {
+    Name = "${var.name}-${each.value.name}"
+    Description = each.value.description
+  }
+}
+
 resource "aws_sqs_queue" "dlq" {
   count = var.enable_dlq ? 1 : 0
 
@@ -42,7 +53,6 @@ resource "aws_cloudwatch_event_target" "targets" {
       "${rule_key}-${target.id}" => {
         rule_name  = rule.name
         target     = target
-        rule_arn   = aws_cloudwatch_event_rule.rules[rule_key].arn
       }
     }
   ]...)
@@ -56,9 +66,9 @@ resource "aws_cloudwatch_event_target" "targets" {
   role_arn       = each.value.target.role_arn
 
   dynamic "dead_letter_config" {
-    for_each = var.enable_dlq && each.value.target.dead_letter_config == null ? [1] : (each.value.target.dead_letter_config != null ? [each.value.target.dead_letter_config] : [])
+    for_each = var.enable_dlq ? [1] : []
     content {
-      arn = var.enable_dlq && each.value.target.dead_letter_config == null ? aws_sqs_queue.dlq[0].arn : dead_letter_config.value.arn
+      arn = aws_sqs_queue.dlq[0].arn
     }
   }
 
@@ -70,12 +80,8 @@ resource "aws_cloudwatch_event_target" "targets" {
     }
   }
 
-  dynamic "sqs_parameters" {
-    for_each = each.value.target.sqs_parameters != null ? [each.value.target.sqs_parameters] : []
-    content {
-      message_group_id = sqs_parameters.value.message_group_id
-    }
-  }
+  # Note: sqs_parameters is not supported in aws_cloudwatch_event_target
+  # Use SQS queue configuration directly if needed
 }
 
 resource "aws_cloudwatch_event_archive" "archive" {

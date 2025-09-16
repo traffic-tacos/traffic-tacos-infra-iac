@@ -52,3 +52,23 @@ output "target_role_name" {
   description = "EventBridge 타겟 역할 이름"
   value       = aws_iam_role.eventbridge_target_role.name
 }
+
+output "additional_bus_arns" {
+  description = "추가 이벤트 버스 ARN 목록"
+  value       = { for k, bus in aws_cloudwatch_event_bus.additional_buses : k => bus.arn }
+}
+
+output "additional_bus_names" {
+  description = "추가 이벤트 버스 이름 목록"
+  value       = { for k, bus in aws_cloudwatch_event_bus.additional_buses : k => bus.name }
+}
+
+output "reservation_bus_arn" {
+  description = "Reservation 이벤트 버스 ARN"
+  value       = try(aws_cloudwatch_event_bus.additional_buses["reservation-events"].arn, null)
+}
+
+output "reservation_bus_name" {
+  description = "Reservation 이벤트 버스 이름"
+  value       = try(aws_cloudwatch_event_bus.additional_buses["reservation-events"].name, null)
+}

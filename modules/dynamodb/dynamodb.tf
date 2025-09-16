@@ -42,16 +42,20 @@ resource "aws_dynamodb_table" "table" {
     }
   }
 
-  dynamic "server_side_encryption" {
-    for_each = var.server_side_encryption ? [1] : []
-    content {
-      enabled     = true
-      kms_key_id  = var.kms_key_id
-    }
+  server_side_encryption {
+    enabled = var.server_side_encryption
   }
 
   point_in_time_recovery {
     enabled = var.enable_point_in_time_recovery
+  }
+
+  dynamic "ttl" {
+    for_each = each.value.ttl_enabled ? [1] : []
+    content {
+      enabled        = true
+      attribute_name = each.value.ttl_attribute
+    }
   }
 
   tags = {

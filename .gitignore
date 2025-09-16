@@ -33,3 +33,6 @@ secret/*
 .cursor/CLAUDE.md
 .claude/
 CLAUDE.md
+
+# Docs
+docs/

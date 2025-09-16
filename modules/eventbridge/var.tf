@@ -10,6 +10,20 @@ variable "custom_bus_name" {
   default     = "ticket-events"
 }
 
+variable "additional_buses" {
+  type = list(object({
+    name = string
+    description = optional(string, "")
+  }))
+  description = "추가 이벤트 버스 목록"
+  default = [
+    {
+      name = "reservation-events"
+      description = "Reservation domain events"
+    }
+  ]
+}
+
 variable "rules" {
   type = list(object({
     name                = string
@@ -34,9 +48,7 @@ variable "rules" {
         maximum_event_age_in_seconds = number
       }))
 
-      sqs_parameters = optional(object({
-        message_group_id = string
-      }))
+      # sqs_parameters not supported in aws_cloudwatch_event_target
     }))
   }))
 
@@ -44,13 +56,7 @@ variable "rules" {
     {
       name        = "ticket-created"
       description = "티켓 생성 이벤트 처리"
-      event_pattern = jsonencode({
-        source      = ["ticket.service"]
-        detail-type = ["Ticket Created"]
-        detail = {
-          status = ["created"]
-        }
-      })
+      event_pattern = "{\"source\":[\"ticket.service\"],\"detail-type\":[\"Ticket Created\"],\"detail\":{\"status\":[\"created\"]}}"
       targets = [
         {
           id  = "ticket-created-handler"
@@ -61,17 +67,45 @@ variable "rules" {
     {
       name        = "ticket-status-changed"
       description = "티켓 상태 변경 이벤트 처리"
-      event_pattern = jsonencode({
-        source      = ["ticket.service"]
-        detail-type = ["Ticket Status Changed"]
-        detail = {
-          status = ["approved", "rejected", "completed"]
-        }
-      })
+      event_pattern = "{\"source\":[\"ticket.service\"],\"detail-type\":[\"Ticket Status Changed\"],\"detail\":{\"status\":[\"approved\",\"rejected\",\"completed\"]}}"
       targets = [
         {
           id  = "status-change-handler"
           arn = "arn:aws:lambda:ap-northeast-2:137406935518:function:status-handler"
+        }
+      ]
+    },
+    # Reservation API Events
+    {
+      name        = "reservation-created"
+      description = "예약 생성 이벤트 처리"
+      event_pattern = "{\"source\":[\"reservation.service\"],\"detail-type\":[\"Reservation Created\"],\"detail\":{\"status\":[\"HOLD\"]}}"
+      targets = [
+        {
+          id  = "reservation-created-handler"
+          arn = "arn:aws:lambda:ap-northeast-2:137406935518:function:reservation-handler"
+        }
+      ]
+    },
+    {
+      name        = "reservation-status-changed"
+      description = "예약 상태 변경 이벤트 처리"
+      event_pattern = "{\"source\":[\"reservation.service\"],\"detail-type\":[\"Reservation Status Changed\"],\"detail\":{\"status\":[\"CONFIRMED\",\"CANCELLED\",\"EXPIRED\"]}}"
+      targets = [
+        {
+          id  = "reservation-status-handler"
+          arn = "arn:aws:lambda:ap-northeast-2:137406935518:function:reservation-status-handler"
+        }
+      ]
+    },
+    {
+      name        = "reservation-expiry-scheduler"
+      description = "예약 만료 스케줄러 이벤트"
+      event_pattern = "{\"source\":[\"aws.scheduler\"],\"detail-type\":[\"Scheduled Event\"],\"detail\":{\"event_type\":[\"reservation-expiry\"]}}"
+      targets = [
+        {
+          id  = "reservation-expiry-handler"
+          arn = "arn:aws:lambda:ap-northeast-2:137406935518:function:reservation-expiry-handler"
         }
       ]
     }
@@ -97,9 +131,7 @@ variable "archive_config" {
     description    = optional(string, "Event archive for ticket events")
     retention_days = optional(number, 365)
 
-    event_pattern = optional(string, jsonencode({
-      source = ["ticket.service"]
-    }))
+    event_pattern = optional(string, "{\"source\":[\"ticket.service\",\"reservation.service\",\"aws.scheduler\"]}")
   })
 
   default = {

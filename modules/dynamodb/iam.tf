@@ -126,3 +126,110 @@ resource "aws_iam_role_policy_attachment" "dynamodb_readonly_policy_attachment" 
   role       = aws_iam_role.dynamodb_readonly_role.name
   policy_arn = aws_iam_policy.dynamodb_readonly_policy.arn
 }
+
+# Reservation API Service Role
+data "aws_iam_policy_document" "reservation_service_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:Query",
+      "dynamodb:Scan",
+      "dynamodb:BatchGetItem",
+      "dynamodb:BatchWriteItem"
+    ]
+    resources = [
+      for table in aws_dynamodb_table.table : table.arn
+      if startswith(table.name, "${var.name}-reservation-")
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:Query",
+      "dynamodb:Scan"
+    ]
+    resources = [
+      for table in aws_dynamodb_table.table : "${table.arn}/index/*"
+      if startswith(table.name, "${var.name}-reservation-")
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "events:PutEvents"
+    ]
+    resources = [
+      "arn:aws:events:*:*:event-bus/${var.name}-reservation-events"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = [
+      "arn:aws:logs:*:*:log-group:/aws/ecs/reservation-api*",
+      "arn:aws:logs:*:*:log-group:/aws/eks/reservation-api*"
+    ]
+  }
+}
+
+resource "aws_iam_role" "reservation_service_role" {
+  name = "${var.name}-reservation-api-service-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = ["ecs-tasks.amazonaws.com"]
+        }
+      },
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Federated = "arn:aws:iam::*:oidc-provider/*"
+        }
+        Condition = {
+          StringEquals = {
+            "*:sub" = "system:serviceaccount:*:reservation-api"
+            "*:aud" = "sts.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name = "${var.name}-reservation-api-service-role"
+    Service = "reservation-api"
+  }
+}
+
+resource "aws_iam_policy" "reservation_service_policy" {
+  name        = "${var.name}-reservation-api-service-policy"
+  description = "Policy for reservation API service"
+  policy      = data.aws_iam_policy_document.reservation_service_policy.json
+
+  tags = {
+    Name = "${var.name}-reservation-api-service-policy"
+    Service = "reservation-api"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "reservation_service_policy_attachment" {
+  role       = aws_iam_role.reservation_service_role.name
+  policy_arn = aws_iam_policy.reservation_service_policy.arn
+}
