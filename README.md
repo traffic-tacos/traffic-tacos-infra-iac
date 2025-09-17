@@ -39,6 +39,11 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
 │   └── request/            # 요구사항 문서
 │       └── reservation-api-infrastructure-requirements.md
 └── modules/
+    ├── awsgrafana/         # AWS Grafana 모듈
+    │   ├── awsgrafna.tf    # Grafana 리소스 정의
+    │   ├── iam.tf          # Grafana IAM 역할 및 정책
+    │   ├── sso.tf          # SSO 설정
+    │   └── var.tf          # Grafana 모듈 변수
     ├── ec2/                 # EC2 모듈
     │   ├── ec2.tf          # EC2 인스턴스 리소스 정의
     │   ├── out.tf          # EC2 모듈 출력

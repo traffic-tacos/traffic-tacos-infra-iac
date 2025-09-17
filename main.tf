@@ -113,3 +113,8 @@ module "eventbridge" {
   source = "./modules/eventbridge"
   dynamodb_table_arns = values(module.dynamodb.table_arns)
 }
+
+module "awsgrafana" {
+  source        = "./modules/awsgrafana"
+  grafana_name  = "tacos-grafana"
+}
