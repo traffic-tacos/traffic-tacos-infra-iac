@@ -118,3 +118,7 @@ module "awsgrafana" {
   source        = "./modules/awsgrafana"
   grafana_name  = "tacos-grafana"
 }
+
+module "awsprometheus" {
+  source = "./modules/awsprometheus"
+}
