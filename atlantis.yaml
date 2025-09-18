@@ -23,14 +23,14 @@ workflows:
         - env:
             name: INFRACOST_AWS_OVERRIDE_REGION
             value: ap-northeast-2
-        - run: |
-            echo "=== 💰 Infracost 비용 분석 ==="
-            echo "현재 인프라 비용:"
-            infracost breakdown --path . --format json
-            echo ""
-            echo "변경사항으로 인한 비용 차이:"
-            infracost diff --path . --compare-to /dev/null --format diff
-            echo "=== 비용 분석 완료 ==="
+        # - run: |
+        #     echo "=== 💰 Infracost 비용 분석 ==="
+        #     echo "현재 인프라 비용:"
+        #     infracost breakdown --path . --format json
+        #     echo ""
+        #     echo "변경사항으로 인한 비용 차이:"
+        #     infracost diff --path . --compare-to /dev/null --format diff
+        #     echo "=== 비용 분석 완료 ==="
     apply:
       steps:
         - apply
