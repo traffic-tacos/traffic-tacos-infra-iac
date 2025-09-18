@@ -6,13 +6,3 @@ projects:
     autoplan:
       when_modified: ["*.tf", "*.tfvars", "modules/**/*.tf"]
       enabled: true
-
-workflows:
-  default:
-    plan:
-      steps:
-        - init
-        - plan
-    apply:
-      steps:
-        - apply
