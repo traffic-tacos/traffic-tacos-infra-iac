@@ -6,31 +6,13 @@ projects:
     autoplan:
       when_modified: ["*.tf", "*.tfvars", "modules/**/*.tf"]
       enabled: true
-    workflow: terraform-infracost
 
 workflows:
-  terraform-infracost:
+  default:
     plan:
       steps:
-        - env:
-            name: INFRACOST_API_KEY
-            value: "${INFRACOST_API_KEY}"
-        - env:
-            name: INFRACOST_CURRENCY
-            value: KRW
-        - env:
-            name: INFRACOST_AWS_OVERRIDE_REGION
-            value: ap-northeast-2
         - init
         - plan
-        - run: |
-            echo "=== 💰 Infracost 비용 분석 ==="
-            echo "현재 인프라 비용:"
-            infracost breakdown --path . --format table --show-skipped
-            echo ""
-            echo "변경사항으로 인한 비용 차이:"
-            infracost diff --path . --format table --show-skipped
-            echo "=== 비용 분석 완료 ==="
     apply:
       steps:
         - apply
