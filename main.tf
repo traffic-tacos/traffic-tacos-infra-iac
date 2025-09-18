@@ -121,4 +121,6 @@ module "awsgrafana" {
 
 module "awsprometheus" {
   source = "./modules/awsprometheus"
-}# Atlantis 기본 기능 테스트
+}
+
+#EKS 기본 설정 테스트
