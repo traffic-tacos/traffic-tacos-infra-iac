@@ -40,5 +40,10 @@ output "parameter_group_name" {
 
 output "auth_token_enabled" {
   description = "Whether auth token is enabled"
-  value       = var.auth_token != null
+  value       = true
+}
+
+output "auth_token_secret_name" {
+  description = "Name of the Secrets Manager secret containing the AUTH token"
+  value       = var.auth_token_secret_name
 }

@@ -59,6 +59,15 @@ resource "aws_elasticache_parameter_group" "redis" {
   }
 }
 
+# Secrets Manager에서 AUTH token 가져오기
+data "aws_secretsmanager_secret" "redis_auth" {
+  name = var.auth_token_secret_name
+}
+
+data "aws_secretsmanager_secret_version" "redis_auth" {
+  secret_id = data.aws_secretsmanager_secret.redis_auth.id
+}
+
 resource "aws_elasticache_replication_group" "redis" {
   replication_group_id = var.cluster_name
   description          = "Redis cluster for ${var.project_name}"
@@ -77,7 +86,8 @@ resource "aws_elasticache_replication_group" "redis" {
 
   at_rest_encryption_enabled = var.at_rest_encryption_enabled
   transit_encryption_enabled = var.transit_encryption_enabled
-  auth_token                 = var.auth_token
+  auth_token                 = data.aws_secretsmanager_secret_version.redis_auth.secret_string
+  auth_token_update_strategy = "SET"
 
   automatic_failover_enabled = var.automatic_failover_enabled
   multi_az_enabled           = var.multi_az_enabled

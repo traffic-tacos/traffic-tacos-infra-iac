@@ -261,7 +261,7 @@ module "elasticache" {
 
   at_rest_encryption_enabled = var.redis_at_rest_encryption_enabled
   transit_encryption_enabled = var.redis_transit_encryption_enabled
-  auth_token                 = var.redis_auth_token
+  auth_token_secret_name     = var.redis_auth_token_secret_name
 
   automatic_failover_enabled = var.redis_automatic_failover_enabled
   multi_az_enabled           = var.redis_multi_az_enabled

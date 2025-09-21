@@ -98,3 +98,8 @@ output "redis_security_group_id" {
   description = "Security group ID for Redis"
   value       = module.elasticache.security_group_id
 }
+
+output "redis_auth_token_secret_name" {
+  description = "Name of the Secrets Manager secret containing Redis AUTH token"
+  value       = module.elasticache.auth_token_secret_name
+}

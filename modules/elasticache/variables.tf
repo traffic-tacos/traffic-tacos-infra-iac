@@ -75,11 +75,10 @@ variable "transit_encryption_enabled" {
   default     = true
 }
 
-variable "auth_token" {
-  description = "Auth token for Redis AUTH command"
+variable "auth_token_secret_name" {
+  description = "Name of the Secrets Manager secret containing Redis AUTH token"
   type        = string
-  default     = null
-  sensitive   = true
+  default     = "traffic-tacos/redis/auth-token"
 }
 
 variable "automatic_failover_enabled" {
