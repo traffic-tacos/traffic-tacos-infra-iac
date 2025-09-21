@@ -12,13 +12,13 @@ variable "custom_bus_name" {
 
 variable "additional_buses" {
   type = list(object({
-    name = string
+    name        = string
     description = optional(string, "")
   }))
   description = "추가 이벤트 버스 목록"
   default = [
     {
-      name = "reservation-events"
+      name        = "reservation-events"
       description = "Reservation domain events"
     }
   ]
@@ -33,18 +33,18 @@ variable "rules" {
     state               = optional(string, "ENABLED")
 
     targets = list(object({
-      id            = string
-      arn           = string
-      input         = optional(string)
-      input_path    = optional(string)
-      role_arn      = optional(string)
+      id         = string
+      arn        = string
+      input      = optional(string)
+      input_path = optional(string)
+      role_arn   = optional(string)
 
       dead_letter_config = optional(object({
         arn = string
       }))
 
       retry_policy = optional(object({
-        maximum_retry_attempts = number
+        maximum_retry_attempts       = number
         maximum_event_age_in_seconds = number
       }))
 
@@ -54,8 +54,8 @@ variable "rules" {
 
   default = [
     {
-      name        = "ticket-created"
-      description = "티켓 생성 이벤트 처리"
+      name          = "ticket-created"
+      description   = "티켓 생성 이벤트 처리"
       event_pattern = "{\"source\":[\"ticket.service\"],\"detail-type\":[\"Ticket Created\"],\"detail\":{\"status\":[\"created\"]}}"
       targets = [
         {
@@ -65,8 +65,8 @@ variable "rules" {
       ]
     },
     {
-      name        = "ticket-status-changed"
-      description = "티켓 상태 변경 이벤트 처리"
+      name          = "ticket-status-changed"
+      description   = "티켓 상태 변경 이벤트 처리"
       event_pattern = "{\"source\":[\"ticket.service\"],\"detail-type\":[\"Ticket Status Changed\"],\"detail\":{\"status\":[\"approved\",\"rejected\",\"completed\"]}}"
       targets = [
         {
@@ -77,8 +77,8 @@ variable "rules" {
     },
     # Reservation API Events
     {
-      name        = "reservation-created"
-      description = "예약 생성 이벤트 처리"
+      name          = "reservation-created"
+      description   = "예약 생성 이벤트 처리"
       event_pattern = "{\"source\":[\"reservation.service\"],\"detail-type\":[\"Reservation Created\"],\"detail\":{\"status\":[\"HOLD\"]}}"
       targets = [
         {
@@ -88,8 +88,8 @@ variable "rules" {
       ]
     },
     {
-      name        = "reservation-status-changed"
-      description = "예약 상태 변경 이벤트 처리"
+      name          = "reservation-status-changed"
+      description   = "예약 상태 변경 이벤트 처리"
       event_pattern = "{\"source\":[\"reservation.service\"],\"detail-type\":[\"Reservation Status Changed\"],\"detail\":{\"status\":[\"CONFIRMED\",\"CANCELLED\",\"EXPIRED\"]}}"
       targets = [
         {
@@ -99,8 +99,8 @@ variable "rules" {
       ]
     },
     {
-      name        = "reservation-expiry-scheduler"
-      description = "예약 만료 스케줄러 이벤트"
+      name          = "reservation-expiry-scheduler"
+      description   = "예약 만료 스케줄러 이벤트"
       event_pattern = "{\"source\":[\"aws.scheduler\"],\"detail-type\":[\"Scheduled Event\"],\"detail\":{\"event_type\":[\"reservation-expiry\"]}}"
       targets = [
         {

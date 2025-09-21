@@ -12,7 +12,7 @@ resource "aws_cloudwatch_event_bus" "additional_buses" {
   name = "${var.name}-${each.value.name}"
 
   tags = {
-    Name = "${var.name}-${each.value.name}"
+    Name        = "${var.name}-${each.value.name}"
     Description = each.value.description
   }
 }
@@ -34,12 +34,12 @@ resource "aws_sqs_queue" "dlq" {
 resource "aws_cloudwatch_event_rule" "rules" {
   for_each = { for rule in var.rules : rule.name => rule }
 
-  name           = "${var.name}-${each.value.name}"
-  description    = each.value.description
-  event_bus_name = aws_cloudwatch_event_bus.custom_bus.name
-  event_pattern  = each.value.event_pattern
+  name                = "${var.name}-${each.value.name}"
+  description         = each.value.description
+  event_bus_name      = aws_cloudwatch_event_bus.custom_bus.name
+  event_pattern       = each.value.event_pattern
   schedule_expression = each.value.schedule_expression
-  state          = each.value.state
+  state               = each.value.state
 
   tags = {
     Name = "${var.name}-${each.value.name}"
@@ -51,8 +51,8 @@ resource "aws_cloudwatch_event_target" "targets" {
     for rule_key, rule in var.rules : {
       for target in rule.targets :
       "${rule_key}-${target.id}" => {
-        rule_name  = rule.name
-        target     = target
+        rule_name = rule.name
+        target    = target
       }
     }
   ]...)

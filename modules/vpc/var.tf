@@ -5,9 +5,9 @@ variable "vpc_cidr" {
 }
 
 variable "name" {
-    type = string
-    description = "리소스 접두사"
-    default = "ticket"
+  type        = string
+  description = "리소스 접두사"
+  default     = "ticket"
 }
 
 variable "azs" {
@@ -22,10 +22,10 @@ variable "public_cidrs" {
 
 variable "private_app_cidrs" {
   type    = list(string)
-  default = ["10.180.4.0/22", "10.180.8.0/22"] 
+  default = ["10.180.4.0/22", "10.180.8.0/22"]
 }
 
 variable "private_db_cidrs" {
   type    = list(string)
-  default = ["10.180.2.0/24", "10.180.3.0/24"] 
+  default = ["10.180.2.0/24", "10.180.3.0/24"]
 }

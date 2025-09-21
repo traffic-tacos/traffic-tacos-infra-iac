@@ -21,21 +21,21 @@ variable "tables" {
     }))
 
     global_secondary_indexes = optional(list(object({
-      name      = string
-      hash_key  = string
-      range_key = optional(string)
+      name            = string
+      hash_key        = string
+      range_key       = optional(string)
       projection_type = optional(string, "ALL")
       read_capacity   = optional(number, 5)
       write_capacity  = optional(number, 5)
     })), [])
 
     local_secondary_indexes = optional(list(object({
-      name      = string
-      range_key = string
+      name            = string
+      range_key       = string
       projection_type = optional(string, "ALL")
     })), [])
 
-    ttl_enabled = optional(bool, false)
+    ttl_enabled   = optional(bool, false)
     ttl_attribute = optional(string, "ttl")
   }))
 
@@ -90,8 +90,8 @@ variable "tables" {
     },
     # Reservation API Tables
     {
-      name     = "reservation-reservations"
-      hash_key = "pk"
+      name      = "reservation-reservations"
+      hash_key  = "pk"
       range_key = "sk"
       attributes = [
         {
@@ -117,20 +117,20 @@ variable "tables" {
       ]
       global_secondary_indexes = [
         {
-          name     = "user-status-index"
-          hash_key = "user_id"
+          name      = "user-status-index"
+          hash_key  = "user_id"
           range_key = "status"
         },
         {
-          name     = "status-created-index"
-          hash_key = "status"
+          name      = "status-created-index"
+          hash_key  = "status"
           range_key = "created_at"
         }
       ]
     },
     {
-      name     = "reservation-orders"
-      hash_key = "pk"
+      name      = "reservation-orders"
+      hash_key  = "pk"
       range_key = "sk"
       attributes = [
         {
@@ -156,13 +156,13 @@ variable "tables" {
       ]
       global_secondary_indexes = [
         {
-          name     = "user-created-index"
-          hash_key = "user_id"
+          name      = "user-created-index"
+          hash_key  = "user_id"
           range_key = "created_at"
         },
         {
-          name     = "event-created-index"
-          hash_key = "event_id"
+          name      = "event-created-index"
+          hash_key  = "event_id"
           range_key = "created_at"
         }
       ]
@@ -176,12 +176,12 @@ variable "tables" {
           type = "S"
         }
       ]
-      ttl_enabled = true
+      ttl_enabled   = true
       ttl_attribute = "ttl"
     },
     {
-      name     = "reservation-outbox"
-      hash_key = "pk"
+      name      = "reservation-outbox"
+      hash_key  = "pk"
       range_key = "sk"
       attributes = [
         {
@@ -203,8 +203,8 @@ variable "tables" {
       ]
       global_secondary_indexes = [
         {
-          name     = "status-created_at-index"
-          hash_key = "status"
+          name      = "status-created_at-index"
+          hash_key  = "status"
           range_key = "created_at"
         }
       ]
