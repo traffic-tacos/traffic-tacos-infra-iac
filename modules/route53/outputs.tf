@@ -1,16 +1,16 @@
 output "zone_id" {
   description = "The hosted zone ID"
-  value       = aws_route53_zone.main.zone_id
+  value       = data.aws_route53_zone.main.zone_id
 }
 
 output "zone_name" {
   description = "The hosted zone name"
-  value       = aws_route53_zone.main.name
+  value       = data.aws_route53_zone.main.name
 }
 
 output "name_servers" {
   description = "List of name servers for the hosted zone"
-  value       = aws_route53_zone.main.name_servers
+  value       = data.aws_route53_zone.main.name_servers
 }
 
 output "api_record_name" {

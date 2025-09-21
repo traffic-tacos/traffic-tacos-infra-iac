@@ -123,20 +123,12 @@ module "awsprometheus" {
   source = "./modules/awsprometheus"
 }
 
+# Reference existing manually created hosted zone
 module "route53" {
   source = "./modules/route53"
 
   domain_name  = var.domain_name
   project_name = var.project_name
-
-  # Will be populated after ALB and CloudFront are created
-  api_alb_dns_name                    = var.api_alb_dns_name
-  api_alb_zone_id                     = var.api_alb_zone_id
-  cloudfront_distribution_domain_name = ""
-  cloudfront_distribution_zone_id     = "Z2FDTNDATAQYW2"
-
-  # ACM validation will be handled separately
-  acm_certificate_domain_validation_options = []
 }
 
 module "acm" {

@@ -1,11 +1,6 @@
-resource "aws_route53_zone" "main" {
+# Use existing manually created hosted zone
+data "aws_route53_zone" "main" {
   name = var.domain_name
-
-  tags = {
-    Name      = "${var.domain_name}-zone"
-    Project   = var.project_name
-    ManagedBy = "terraform"
-  }
 }
 
 # API record will be created in main.tf when ALB is available

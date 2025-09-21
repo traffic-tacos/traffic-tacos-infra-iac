@@ -11,12 +11,12 @@ output "hosted_zone_name_servers" {
 
 output "api_record_fqdn" {
   description = "FQDN of the API record"
-  value       = module.route53.api_record_name
+  value       = try(aws_route53_record.api[0].fqdn, "")
 }
 
 output "www_record_fqdn" {
   description = "FQDN of the WWW record"
-  value       = module.route53.www_record_name
+  value       = aws_route53_record.www.fqdn
 }
 
 # ACM Certificate Outputs
