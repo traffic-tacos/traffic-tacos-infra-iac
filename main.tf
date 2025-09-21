@@ -8,6 +8,14 @@ module "eks" {
   vpc_id             = module.vpc.vpc_id
   vpc_cidr           = module.vpc.vpc_cidr
   bastion_host_ip    = module.ec2.bastion_host_ip
+
+  # Gateway API configuration
+  enable_gateway_api    = true
+  domain_name          = var.domain_name
+  acm_certificate_arn  = aws_acm_certificate_validation.main.certificate_arn
+  aws_region           = var.region
+
+  depends_on = [aws_acm_certificate_validation.main]
 }
 
 module "ec2" {
@@ -210,19 +218,21 @@ resource "aws_route53_record" "www" {
   depends_on = [module.cloudfront]
 }
 
-# Create API record when ALB is available
+# Create API record automatically from Gateway ALB
 resource "aws_route53_record" "api" {
-  count = var.api_alb_dns_name != "" ? 1 : 0
+  count = module.eks.alb_hostname != "" ? 1 : 0
 
   zone_id = module.route53.zone_id
   name    = "api.${var.domain_name}"
   type    = "A"
 
   alias {
-    name                   = var.api_alb_dns_name
-    zone_id                = var.api_alb_zone_id
+    name                   = module.eks.alb_hostname
+    zone_id                = module.eks.alb_zone_id
     evaluate_target_health = true
   }
+
+  depends_on = [module.eks]
 }
 
 module "elasticache" {

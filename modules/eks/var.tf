@@ -66,5 +66,33 @@ variable "eks_addons" {
       name    = "aws-ebs-csi-driver"
       version = "v1.48.0-eksbuild.2"
     },
+    {
+      name    = "aws-gateway-api-controller"
+      version = "v1.3.0-eksbuild.1"
+    },
   ]
+}
+
+variable "enable_gateway_api" {
+  description = "Enable Gateway API support"
+  type        = bool
+  default     = true
+}
+
+variable "domain_name" {
+  description = "Domain name for Gateway hostname"
+  type        = string
+  default     = ""
+}
+
+variable "acm_certificate_arn" {
+  description = "ARN of ACM certificate for HTTPS"
+  type        = string
+  default     = ""
+}
+
+variable "aws_region" {
+  description = "AWS region for ALB zone ID mapping"
+  type        = string
+  default     = "ap-northeast-2"
 }

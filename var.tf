@@ -20,17 +20,18 @@ variable "project_name" {
   default     = "traffic-tacos"
 }
 
-variable "api_alb_dns_name" {
-  description = "DNS name of the EKS ALB for API subdomain"
-  type        = string
-  default     = ""
-}
+# Legacy variables - now handled automatically by Gateway API
+# variable "api_alb_dns_name" {
+#   description = "DNS name of the EKS ALB for API subdomain"
+#   type        = string
+#   default     = ""
+# }
 
-variable "api_alb_zone_id" {
-  description = "Zone ID of the EKS ALB for API subdomain"
-  type        = string
-  default     = ""
-}
+# variable "api_alb_zone_id" {
+#   description = "Zone ID of the EKS ALB for API subdomain"
+#   type        = string
+#   default     = ""
+# }
 
 # Redis ElastiCache Variables
 variable "redis_node_type" {
