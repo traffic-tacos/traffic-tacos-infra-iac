@@ -66,5 +66,9 @@ variable "eks_addons" {
       name = "aws-ebs-csi-driver"
       version = "v1.48.0-eksbuild.2"
     },
+    {
+      name = "cert-manager"
+      version = "v1.18.2-eksbuild.2"
+    }
   ]
 }
