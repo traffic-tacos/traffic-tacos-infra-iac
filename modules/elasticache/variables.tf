@@ -46,7 +46,7 @@ variable "engine_version" {
 variable "parameter_group_family" {
   description = "Redis parameter group family"
   type        = string
-  default     = "redis7.x"
+  default     = "redis7"
 }
 
 variable "parameters" {
