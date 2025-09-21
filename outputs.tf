@@ -19,6 +19,11 @@ output "www_record_fqdn" {
   value       = aws_route53_record.www.fqdn
 }
 
+output "bastion_record_fqdn" {
+  description = "FQDN of the Bastion record"
+  value       = aws_route53_record.bastion.fqdn
+}
+
 # ACM Certificate Outputs
 output "acm_certificate_arn" {
   description = "ARN of the ACM certificate for ALB"

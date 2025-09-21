@@ -235,6 +235,17 @@ resource "aws_route53_record" "api" {
   depends_on = [module.eks]
 }
 
+# Create Bastion record for SSH access
+resource "aws_route53_record" "bastion" {
+  zone_id = module.route53.zone_id
+  name    = "bastion.${var.domain_name}"
+  type    = "A"
+  ttl     = 300
+  records = [module.ec2.bastion_host_public_ip]
+
+  depends_on = [module.ec2]
+}
+
 module "elasticache" {
   source = "./modules/elasticache"
 
