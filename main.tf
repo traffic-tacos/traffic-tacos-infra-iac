@@ -123,6 +123,22 @@ module "awsprometheus" {
   source = "./modules/awsprometheus"
 }
 
+module "route53" {
+  source = "./modules/route53"
+
+  domain_name  = var.domain_name
+  project_name = var.project_name
+
+  # Will be populated after ALB and CloudFront are created
+  api_alb_dns_name                    = var.api_alb_dns_name
+  api_alb_zone_id                     = var.api_alb_zone_id
+  cloudfront_distribution_domain_name = ""
+  cloudfront_distribution_zone_id     = "Z2FDTNDATAQYW2"
+
+  # ACM validation will be handled separately
+  acm_certificate_domain_validation_options = []
+}
+
 module "acm" {
   source = "./modules/acm"
 
@@ -134,21 +150,35 @@ module "acm" {
   domain_name               = var.domain_name
   subject_alternative_names = ["api.${var.domain_name}", "www.${var.domain_name}", "*.${var.domain_name}"]
   project_name              = var.project_name
-  validation_record_fqdns   = [for record in module.route53.api_record_name : record if record != ""]
+  validation_record_fqdns   = []
 }
 
-module "route53" {
-  source = "./modules/route53"
+resource "aws_route53_record" "acm_validation" {
+  for_each = {
+    for dvo in module.acm.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
 
-  domain_name                               = var.domain_name
-  project_name                              = var.project_name
-  acm_certificate_domain_validation_options = module.acm.domain_validation_options
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = module.route53.zone_id
+}
 
-  # Will be populated after ALB and CloudFront are created
-  api_alb_dns_name                    = var.api_alb_dns_name
-  api_alb_zone_id                     = var.api_alb_zone_id
-  cloudfront_distribution_domain_name = try(module.cloudfront.distribution_domain_name, "")
-  cloudfront_distribution_zone_id     = try(module.cloudfront.distribution_hosted_zone_id, "Z2FDTNDATAQYW2")
+resource "aws_acm_certificate_validation" "main" {
+  certificate_arn         = module.acm.certificate_arn
+  validation_record_fqdns = [for record in aws_route53_record.acm_validation : record.fqdn]
+}
+
+resource "aws_acm_certificate_validation" "cloudfront" {
+  provider                = aws.us_east_1
+  certificate_arn         = module.acm.cloudfront_certificate_arn
+  validation_record_fqdns = [for record in aws_route53_record.acm_validation : record.fqdn]
 }
 
 module "s3_static" {
@@ -167,8 +197,40 @@ module "cloudfront" {
   s3_bucket_regional_domain_name = module.s3_static.bucket_regional_domain_name
   domain_name                    = var.domain_name
   aliases                        = ["www.${var.domain_name}"]
-  acm_certificate_arn            = module.acm.cloudfront_certificate_arn
+  acm_certificate_arn            = aws_acm_certificate_validation.cloudfront.certificate_arn
   project_name                   = var.project_name
+
+  depends_on = [aws_acm_certificate_validation.cloudfront]
+}
+
+# Create WWW record after CloudFront is available
+resource "aws_route53_record" "www" {
+  zone_id = module.route53.zone_id
+  name    = "www.${var.domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = module.cloudfront.distribution_domain_name
+    zone_id                = module.cloudfront.distribution_hosted_zone_id
+    evaluate_target_health = false
+  }
+
+  depends_on = [module.cloudfront]
+}
+
+# Create API record when ALB is available
+resource "aws_route53_record" "api" {
+  count = var.api_alb_dns_name != "" ? 1 : 0
+
+  zone_id = module.route53.zone_id
+  name    = "api.${var.domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = var.api_alb_dns_name
+    zone_id                = var.api_alb_zone_id
+    evaluate_target_health = true
+  }
 }
 
 module "elasticache" {

@@ -8,47 +8,21 @@ resource "aws_route53_zone" "main" {
   }
 }
 
-resource "aws_route53_record" "api" {
-  count = var.api_alb_dns_name != "" ? 1 : 0
+# API record will be created in main.tf when ALB is available
 
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "api.${var.domain_name}"
-  type    = "A"
+# WWW record will be created later when CloudFront is available
+# resource "aws_route53_record" "www" {
+#   count = var.cloudfront_distribution_domain_name != "" ? 1 : 0
 
-  alias {
-    name                   = var.api_alb_dns_name
-    zone_id                = var.api_alb_zone_id
-    evaluate_target_health = true
-  }
-}
+#   zone_id = aws_route53_zone.main.zone_id
+#   name    = "www.${var.domain_name}"
+#   type    = "A"
 
-resource "aws_route53_record" "www" {
-  count = var.cloudfront_distribution_domain_name != "" ? 1 : 0
+#   alias {
+#     name                   = var.cloudfront_distribution_domain_name
+#     zone_id                = var.cloudfront_distribution_zone_id
+#     evaluate_target_health = false
+#   }
+# }
 
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "www.${var.domain_name}"
-  type    = "A"
-
-  alias {
-    name                   = var.cloudfront_distribution_domain_name
-    zone_id                = var.cloudfront_distribution_zone_id
-    evaluate_target_health = false
-  }
-}
-
-resource "aws_route53_record" "acm_validation" {
-  for_each = {
-    for dvo in var.acm_certificate_domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  }
-
-  allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  ttl             = 60
-  type            = each.value.type
-  zone_id         = aws_route53_zone.main.zone_id
-}
+# ACM validation records will be created in main.tf to avoid circular dependency

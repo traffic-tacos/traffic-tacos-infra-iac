@@ -15,10 +15,10 @@ output "name_servers" {
 
 output "api_record_name" {
   description = "FQDN of the API record"
-  value       = try(aws_route53_record.api[0].fqdn, "")
+  value       = ""
 }
 
 output "www_record_name" {
   description = "FQDN of the WWW record"
-  value       = try(aws_route53_record.www[0].fqdn, "")
+  value       = ""
 }
