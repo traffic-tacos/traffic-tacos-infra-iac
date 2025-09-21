@@ -1,51 +1,51 @@
 data "aws_iam_policy_document" "eks_assume_role_policy" {
-    statement {
-      actions = ["sts:AssumeRole"]
-      principals {
-        type = "Service"
-        identifiers = ["eks.amazonaws.com"]
-        }
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["eks.amazonaws.com"]
     }
+  }
 }
 
 resource "aws_iam_role" "eks_cluster_role" {
-    name = "${var.cluster_name}-eks-cluster-role"
-    assume_role_policy = data.aws_iam_policy_document.eks_assume_role_policy.json
-    tags = {
-      Name = "${var.cluster_name}-eks-cluster-role"
-    }
+  name               = "${var.cluster_name}-eks-cluster-role"
+  assume_role_policy = data.aws_iam_policy_document.eks_assume_role_policy.json
+  tags = {
+    Name = "${var.cluster_name}-eks-cluster-role"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "eks_cluster_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role = aws_iam_role.eks_cluster_role.name
+  role       = aws_iam_role.eks_cluster_role.name
 }
 
 resource "aws_iam_role_policy_attachment" "eks_service_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
-  role = aws_iam_role.eks_cluster_role.name
+  role       = aws_iam_role.eks_cluster_role.name
 }
 
 data "aws_iam_policy_document" "eks_worker_assume_role_policy" {
-    statement {
-      actions = ["sts:AssumeRole"]
-      principals {
-        type = "Service"
-        identifiers = ["ec2.amazonaws.com"]
-      }
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
     }
+  }
 }
 
 resource "aws_iam_role" "eks_worker_role" {
-    name = "${var.cluster_name}-eks-worker-role"
-    assume_role_policy = data.aws_iam_policy_document.eks_worker_assume_role_policy.json
-    tags = {
-      Name = "${var.cluster_name}-eks-worker-role"
-    }
+  name               = "${var.cluster_name}-eks-worker-role"
+  assume_role_policy = data.aws_iam_policy_document.eks_worker_assume_role_policy.json
+  tags = {
+    Name = "${var.cluster_name}-eks-worker-role"
+  }
 }
 resource "aws_iam_policy" "eks_worker_ebs_policy" {
-  name        = "eks_worker_ebs_policy"
-  policy      = jsonencode({
+  name = "eks_worker_ebs_policy"
+  policy = jsonencode({
     "Version" : "2012-10-17",
     "Statement" : [
       {
@@ -67,8 +67,8 @@ resource "aws_iam_policy" "eks_worker_ebs_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "eks_worker_policy_attach" {
-    role = aws_iam_role.eks_worker_role.name
-    policy_arn = aws_iam_policy.eks_worker_ebs_policy.arn  
+  role       = aws_iam_role.eks_worker_role.name
+  policy_arn = aws_iam_policy.eks_worker_ebs_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "eks_worker_AmazonEKSWorkerNodePolicy" {
@@ -88,8 +88,8 @@ resource "aws_iam_role_policy_attachment" "eks_worker_AmazonEC2ContainerRegistry
 }
 
 resource "aws_iam_role_policy_attachment" "eks_worker_AmazonEFSDriverpolicy" {
-    role       = aws_iam_role.eks_worker_role.name
-    policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
+  role       = aws_iam_role.eks_worker_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
 
 }
 
@@ -98,9 +98,9 @@ resource "aws_iam_role" "ebs_csi" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Effect = "Allow",
+      Effect    = "Allow",
       Principal = { Service = "pods.eks.amazonaws.com" },
-      Action   = ["sts:AssumeRole", "sts:TagSession"]
+      Action    = ["sts:AssumeRole", "sts:TagSession"]
     }]
   })
 }

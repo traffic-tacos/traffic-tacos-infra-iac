@@ -213,7 +213,7 @@ resource "aws_iam_role" "reservation_service_role" {
   })
 
   tags = {
-    Name = "${var.name}-reservation-api-service-role"
+    Name    = "${var.name}-reservation-api-service-role"
     Service = "reservation-api"
   }
 }
@@ -224,7 +224,7 @@ resource "aws_iam_policy" "reservation_service_policy" {
   policy      = data.aws_iam_policy_document.reservation_service_policy.json
 
   tags = {
-    Name = "${var.name}-reservation-api-service-policy"
+    Name    = "${var.name}-reservation-api-service-policy"
     Service = "reservation-api"
   }
 }

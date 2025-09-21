@@ -1,0 +1,17 @@
+# Infrastructure code owners
+# These users/teams will be automatically requested for review
+# when changes are made to infrastructure files
+
+# Terraform files
+*.tf @traffic-tacos/infra-team
+*.tfvars @traffic-tacos/infra-team
+
+# GitHub Actions workflows
+.github/workflows/ @traffic-tacos/infra-team
+
+# Root configuration files
+/main.tf @traffic-tacos/infra-team
+/var.tf @traffic-tacos/infra-team
+/outputs.tf @traffic-tacos/infra-team
+/providers.tf @traffic-tacos/infra-team
+/backend.tf @traffic-tacos/infra-team
