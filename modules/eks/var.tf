@@ -66,10 +66,11 @@ variable "eks_addons" {
       name    = "aws-ebs-csi-driver"
       version = "v1.48.0-eksbuild.2"
     },
-    {
-      name    = "aws-gateway-api-controller"
-      version = "v1.3.0-eksbuild.1"
-    },
+    # Note: aws-gateway-api-controller is not supported in Kubernetes 1.33
+    # {
+    #   name    = "aws-gateway-api-controller"
+    #   version = "v1.3.0-eksbuild.1"
+    # },
   ]
 }
 
