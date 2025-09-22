@@ -56,6 +56,8 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
     │   ├── eks.tf          # EKS 클러스터 리소스 정의
     │   ├── iam.tf          # EKS IAM 역할 및 정책
     │   ├── sg.tf           # EKS Security Group 정의
+    │   ├── gateway.tf      # AWS Gateway API 컨트롤러 및 ALB 설정
+    │   ├── outputs.tf      # EKS 모듈 출력
     │   └── var.tf          # EKS 모듈 변수
     ├── dynamodb/            # DynamoDB 모듈
     │   ├── dynamodb.tf     # DynamoDB 테이블 리소스 정의
@@ -68,6 +70,26 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
     │   ├── out.tf          # EventBridge 모듈 출력
     │   └── var.tf          # EventBridge 모듈 변수
     ├── rds/                 # RDS 모듈 (개발 예정)
+    ├── route53/             # Route53 DNS 모듈
+    │   ├── route53.tf      # Route53 Hosted Zone 및 DNS 레코드
+    │   ├── outputs.tf      # Route53 모듈 출력
+    │   └── var.tf          # Route53 모듈 변수
+    ├── acm/                 # ACM SSL 인증서 모듈
+    │   ├── acm.tf          # SSL 인증서 및 CloudFront용 인증서
+    │   ├── outputs.tf      # ACM 모듈 출력
+    │   └── var.tf          # ACM 모듈 변수
+    ├── s3-static/           # S3 정적 웹사이트 모듈
+    │   ├── s3.tf           # S3 버킷 및 정적 웹사이트 설정
+    │   ├── outputs.tf      # S3 모듈 출력
+    │   └── var.tf          # S3 모듈 변수
+    ├── cloudfront/          # CloudFront CDN 모듈
+    │   ├── cloudfront.tf   # CloudFront 배포 설정
+    │   ├── outputs.tf      # CloudFront 모듈 출력
+    │   └── var.tf          # CloudFront 모듈 변수
+    ├── elasticache/         # ElastiCache Redis 모듈
+    │   ├── elasticache.tf  # Redis 클러스터 및 설정
+    │   ├── outputs.tf      # ElastiCache 모듈 출력
+    │   └── var.tf          # ElastiCache 모듈 변수
     └── vpc/                 # VPC 모듈
         ├── out.tf          # VPC 모듈 출력
         ├── var.tf          # VPC 모듈 변수
@@ -144,6 +166,87 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
 
 ## 모듈 설명
 
+### EKS 모듈 (`modules/eks/`)
+
+Kubernetes 클러스터와 관련 인프라를 프로비저닝합니다:
+
+- **EKS 클러스터**: Kubernetes 1.31 클러스터 및 노드 그룹
+- **AWS Gateway API**: Kubernetes Gateway API 컨트롤러 및 ALB 통합
+- **보안**: IAM 역할, 보안 그룹, VPC 엔드포인트
+- **네트워킹**: Private 서브넷 배치, 베스천 호스트 접근
+
+**주요 변수**:
+- `private_subnet_ids`: EKS 노드가 배치될 프라이빗 서브넷
+- `enable_gateway_api`: Gateway API 활성화 여부
+- `domain_name`: ALB에 연결할 도메인 이름
+- `acm_certificate_arn`: SSL 인증서 ARN
+
+### Route53 모듈 (`modules/route53/`)
+
+DNS 관리 및 도메인 설정을 제공합니다:
+
+- **Hosted Zone**: 기존 수동 생성된 호스팅 영역 참조
+- **DNS 레코드**: A 레코드 자동 생성 (www, api, bastion 서브도메인)
+- **SSL 인증서 검증**: ACM 인증서 DNS 검증 지원
+
+**주요 변수**:
+- `domain_name`: 관리할 도메인 이름
+- `project_name`: 리소스 태깅용 프로젝트 이름
+
+### ACM 모듈 (`modules/acm/`)
+
+SSL/TLS 인증서 관리를 제공합니다:
+
+- **지역별 인증서**: 서울 리전 및 us-east-1 (CloudFront용) 인증서
+- **와일드카드 지원**: 메인 도메인 및 서브도메인 (api, www, *) 포함
+- **DNS 검증**: Route53을 통한 자동 검증
+
+**주요 변수**:
+- `domain_name`: 메인 도메인 이름
+- `subject_alternative_names`: 추가 도메인 목록
+
+### S3 정적 웹사이트 모듈 (`modules/s3-static/`)
+
+정적 웹사이트 호스팅을 위한 S3 버킷을 프로비저닝합니다:
+
+- **S3 버킷**: 정적 웹사이트 호스팅 설정
+- **CORS 설정**: CloudFront 통합을 위한 CORS 정책
+- **보안**: 퍼블릭 액세스 차단, CloudFront OAC 통합
+
+**주요 변수**:
+- `bucket_name`: S3 버킷 이름
+- `cors_allowed_origins`: CORS 허용 오리진 목록
+
+### CloudFront 모듈 (`modules/cloudfront/`)
+
+글로벌 CDN 배포를 프로비저닝합니다:
+
+- **CDN 배포**: S3 정적 웹사이트용 CloudFront 배포
+- **SSL 인증서**: ACM 인증서 통합
+- **도메인 별칭**: 커스텀 도메인 (www) 지원
+- **OAC**: Origin Access Control을 통한 S3 보안 접근
+
+**주요 변수**:
+- `domain_name`: 메인 도메인 이름
+- `aliases`: CloudFront 별칭 도메인 목록
+- `acm_certificate_arn`: SSL 인증서 ARN
+
+### ElastiCache 모듈 (`modules/elasticache/`)
+
+Redis 클러스터를 프로비저닝합니다:
+
+- **Redis 클러스터**: ElastiCache Redis 복제 그룹
+- **보안**: VPC 내 배치, 암호화 지원 (전송 중/미사용)
+- **고가용성**: Multi-AZ 배포, 자동 장애 조치
+- **인증**: AUTH 토큰 기반 보안
+
+**주요 변수**:
+- `cluster_name`: Redis 클러스터 이름
+- `node_type`: Redis 노드 타입 (예: cache.t3.micro)
+- `num_cache_clusters`: 클러스터 노드 수
+- `at_rest_encryption_enabled`: 미사용 데이터 암호화
+- `transit_encryption_enabled`: 전송 중 데이터 암호화
+
 ### VPC 모듈 (`modules/vpc/`)
 
 완전한 VPC 인프라를 프로비저닝합니다:
@@ -205,6 +308,27 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
 - `additional_buses`: 추가 이벤트 버스 목록
 - `rules`: 이벤트 규칙 및 타겟 구성
 - `enable_dlq`: DLQ 활성화 (기본값: true)
+
+### AWS Grafana 모듈 (`modules/awsgrafana/`)
+
+AWS Managed Grafana 서비스를 프로비저닝합니다:
+
+- **Grafana 워크스페이스**: AWS Managed Grafana 인스턴스
+- **SSO 통합**: AWS IAM Identity Center (기존 AWS SSO) 연동
+- **IAM 역할**: Grafana 서비스 역할 및 권한 관리
+- **데이터 소스**: Prometheus, CloudWatch 등 통합 지원
+
+**주요 변수**:
+- `grafana_name`: Grafana 워크스페이스 이름
+
+### AWS Prometheus 모듈 (`modules/awsprometheus/`)
+
+AWS Managed Prometheus 서비스를 프로비저닝합니다:
+
+- **Prometheus 워크스페이스**: AWS Managed Prometheus 인스턴스
+- **메트릭 수집**: EKS 클러스터 및 애플리케이션 메트릭
+- **보안**: VPC 내 보안 접근 및 IAM 기반 인증
+- **Grafana 통합**: AWS Grafana와의 데이터 소스 연동
 
 ### RDS 모듈 (`modules/rds/`)
 
@@ -285,6 +409,48 @@ terraform validate
 
 ## 배포된 인프라 현황
 
+### 🌐 네트워킹
+```bash
+VPC                     # 10.180.0.0/20 CIDR
+├── Public Subnets     # 10.180.0.0/24, 10.180.1.0/24
+├── Private App        # 10.180.4.0/22, 10.180.8.0/22
+└── Private DB         # 10.180.2.0/24, 10.180.3.0/24
+
+Internet Gateway       # Public 서브넷 인터넷 접근
+NAT Gateway           # Private 서브넷 아웃바운드
+```
+
+### ☸️ EKS 클러스터
+```bash
+EKS Cluster v1.31     # Kubernetes 클러스터
+├── Node Groups       # Private 서브넷 배치
+├── Gateway API       # ALB 컨트롤러 통합
+└── VPC Endpoints     # AWS 서비스 접근
+```
+
+### 🌍 DNS & SSL
+```bash
+Route53 Hosted Zone   # 도메인 관리
+├── api.domain        # EKS ALB 연결
+├── www.domain        # CloudFront 연결
+└── bastion.domain    # EC2 베스천 호스트
+
+ACM Certificates      # SSL/TLS 인증서
+├── Seoul Region      # EKS ALB용
+└── us-east-1         # CloudFront용
+```
+
+### 🖥️ 정적 웹사이트
+```bash
+S3 Static Website     # 정적 파일 호스팅
+├── CORS 설정         # CloudFront 통합
+└── OAC 보안          # 직접 접근 차단
+
+CloudFront CDN        # 글로벌 배포
+├── Custom Domain     # www.domain 별칭
+└── SSL 인증서        # HTTPS 지원
+```
+
 ### 🗄️ DynamoDB 테이블 (6개)
 ```bash
 ticket-tickets                    # 티켓 정보 (GSI1 포함)
@@ -301,13 +467,44 @@ ticket-ticket-events      # 티켓 서비스 이벤트
 ticket-reservation-events # 예약 서비스 이벤트
 ```
 
-### 👤 IAM 역할 (5개)
+### 🗃️ ElastiCache Redis
 ```bash
-ticket-dynamodb-application-role    # 전체 DynamoDB 접근
-ticket-dynamodb-readonly-role       # 읽기 전용 접근
-ticket-reservation-api-service-role # 예약 API 전용 역할
-ticket-eventbridge-service-role     # EventBridge 서비스 역할
-ticket-eventbridge-target-role      # EventBridge 타겟 역할
+Redis Cluster         # 캐시 및 세션 스토어
+├── Multi-AZ         # 고가용성 설정
+├── Encryption       # 전송/저장 암호화
+└── AUTH Token       # 보안 인증
+```
+
+### 📊 모니터링
+```bash
+AWS Managed Grafana   # 시각화 대시보드
+├── SSO 통합         # IAM Identity Center
+└── Prometheus 연동   # 메트릭 데이터 소스
+
+AWS Managed Prometheus # 메트릭 수집/저장
+├── EKS 통합         # 클러스터 메트릭
+└── 애플리케이션 메트릭 # 커스텀 메트릭
+```
+
+### 👤 IAM 역할
+```bash
+EKS 관련 역할:
+├── EKS Cluster Role     # 클러스터 서비스 역할
+├── EKS Node Group Role  # 노드 그룹 서비스 역할
+└── ALB Controller Role  # Gateway API 컨트롤러 역할
+
+DynamoDB 관련 역할:
+├── Application Role     # 전체 DynamoDB 접근
+├── ReadOnly Role        # 읽기 전용 접근
+└── Reservation API Role # 예약 API 전용 역할
+
+EventBridge 관련 역할:
+├── Service Role         # EventBridge 서비스 역할
+└── Target Role          # EventBridge 타겟 역할
+
+모니터링 관련 역할:
+├── Grafana Service Role # Grafana 워크스페이스 역할
+└── Prometheus Role      # 메트릭 수집 역할
 ```
 
 ## 기여 가이드
