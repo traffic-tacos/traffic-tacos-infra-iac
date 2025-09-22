@@ -10,7 +10,7 @@ module "eks" {
   bastion_host_ip    = module.ec2.bastion_host_ip
 
   # Gateway API configuration
-  enable_gateway_api  = true
+  enable_gateway_api  = false
   domain_name         = var.domain_name
   acm_certificate_arn = aws_acm_certificate_validation.main.certificate_arn
   aws_region          = var.region
