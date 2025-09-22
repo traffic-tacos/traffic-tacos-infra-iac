@@ -77,7 +77,7 @@ locals {
   #   try(local.gateway_status.addresses[0].value, "")
   # ) : ""
 
-  alb_hostname = ""  # Placeholder - will be populated after Gateway is created
+  alb_hostname = "" # Placeholder - will be populated after Gateway is created
 
   # AWS ALB zone IDs by region
   alb_zone_ids = {
@@ -97,5 +97,5 @@ locals {
   }
 
   # alb_zone_id = var.enable_gateway_api ? lookup(local.alb_zone_ids, var.aws_region, "ZWKZPGTI48KDX") : ""
-  alb_zone_id = ""  # Placeholder - will be populated after Gateway is created
+  alb_zone_id = "" # Placeholder - will be populated after Gateway is created
 }
