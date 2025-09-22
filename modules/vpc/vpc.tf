@@ -27,9 +27,9 @@ resource "aws_subnet" "public" {
   availability_zone       = each.key
   map_public_ip_on_launch = true
   tags = {
-    Tier                     = "public",
-    Name                     = "${var.name}-public-subnet-${each.key}",
-    "kubernetes.io/role/elb" = "1",
+    Tier                                   = "public",
+    Name                                   = "${var.name}-public-subnet-${each.key}",
+    "kubernetes.io/role/elb"               = "1",
     "kubernetes.io/cluster/ticket-cluster" = "owned"
   }
 }
@@ -41,9 +41,9 @@ resource "aws_subnet" "private_app" {
   availability_zone       = each.key
   map_public_ip_on_launch = false
   tags = {
-    Tier                              = "private-app",
-    Name                              = "${var.name}-app-subnet-${each.key}",
-    "kubernetes.io/role/internal-elb" = "1",
+    Tier                                   = "private-app",
+    Name                                   = "${var.name}-app-subnet-${each.key}",
+    "kubernetes.io/role/internal-elb"      = "1",
     "kubernetes.io/cluster/ticket-cluster" = "owned"
   }
 }
