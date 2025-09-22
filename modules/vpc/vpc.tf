@@ -29,7 +29,8 @@ resource "aws_subnet" "public" {
   tags = {
     Tier                     = "public",
     Name                     = "${var.name}-public-subnet-${each.key}",
-    "kubernetes.io/role/elb" = "1"
+    "kubernetes.io/role/elb" = "1",
+    "kubernetes.io/cluster/ticket-cluster" = "owned"
   }
 }
 
@@ -42,7 +43,8 @@ resource "aws_subnet" "private_app" {
   tags = {
     Tier                              = "private-app",
     Name                              = "${var.name}-app-subnet-${each.key}",
-    "kubernetes.io/role/internal-elb" = "1"
+    "kubernetes.io/role/internal-elb" = "1",
+    "kubernetes.io/cluster/ticket-cluster" = "owned"
   }
 }
 

@@ -121,5 +121,4 @@ variable "aws_region" {
 variable "mix_instance_types" {
   type    = list(string)
   default = ["t3.medium", "t3.large", "t3.xlarge"]
-
 }
