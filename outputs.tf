@@ -103,3 +103,39 @@ output "redis_auth_token_secret_name" {
   description = "Name of the Secrets Manager secret containing Redis AUTH token"
   value       = module.elasticache.auth_token_secret_name
 }
+
+# SQS Outputs
+output "payment_webhook_queue_name" {
+  description = "Payment webhook SQS 큐 이름"
+  value       = module.sqs.queue_name
+}
+
+output "payment_webhook_queue_url" {
+  description = "Payment webhook SQS 큐 URL"
+  value       = module.sqs.queue_url
+}
+
+output "payment_webhook_queue_arn" {
+  description = "Payment webhook SQS 큐 ARN"
+  value       = module.sqs.queue_arn
+}
+
+output "payment_webhook_dlq_name" {
+  description = "Payment webhook Dead Letter Queue 이름"
+  value       = module.sqs.dlq_name
+}
+
+output "payment_webhook_dlq_url" {
+  description = "Payment webhook Dead Letter Queue URL"
+  value       = module.sqs.dlq_url
+}
+
+output "payment_webhook_dlq_arn" {
+  description = "Payment webhook Dead Letter Queue ARN"
+  value       = module.sqs.dlq_arn
+}
+
+output "payment_webhook_role_arn" {
+  description = "Payment webhook SQS 접근 IAM 역할 ARN"
+  value       = module.sqs.role_arn
+}
