@@ -48,14 +48,13 @@ resource "aws_eks_addon" "eks_addons" {
   cluster_name  = aws_eks_cluster.cluster.name
   addon_name    = each.value.name
   addon_version = each.value.version
-  depends_on    = [aws_eks_cluster.cluster, aws_eks_node_group.ondemand_node_group, aws_eks_node_group.spot_node_group]
+  depends_on    = [aws_eks_cluster.cluster, aws_eks_node_group.ondemand_node_group, aws_eks_node_group.mix_node_group, aws_eks_node_group.monitoring_node_group]
 }
 
 resource "aws_launch_template" "ondemand_lt" {
   name                   = "ondemand_lt"
-  instance_type          = "t3.large"
   vpc_security_group_ids = [aws_security_group.eks_node.id, aws_security_group.eks_cluster.id]
-
+  instance_type = "t3.large"
   tag_specifications {
     resource_type = "instance"
     tags = {
@@ -88,14 +87,14 @@ resource "aws_launch_template" "ondemand_lt" {
   }
 }
 
-resource "aws_launch_template" "spot_lt" {
-  name                   = "spot_lt-v2"
+resource "aws_launch_template" "mix_lt" {
+  name                   = "mix_lt-v2"
   vpc_security_group_ids = [aws_security_group.eks_node.id, aws_security_group.eks_cluster.id]
   # image_id = data.aws_ssm_parameter.eks_ami.value
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name = "spot-node"
+      Name = "mix-node"
     }
   }
 
@@ -103,7 +102,7 @@ resource "aws_launch_template" "spot_lt" {
     device_name = "/dev/xvda"
 
     ebs {
-      volume_size           = var.spot_disk_size
+      volume_size           = var.mix_disk_size
       volume_type           = "gp3"
       delete_on_termination = false
       encrypted             = true
@@ -117,9 +116,45 @@ resource "aws_launch_template" "spot_lt" {
   }
 
   tags = {
-    Name                                        = "spot_lt"
+    Name                                        = "mix_lt"
     "eks:cluster-name"                          = "tiket-cluster"
-    "eks:nodegroup-name"                        = "spot-node-group"
+    "eks:nodegroup-name"                        = "mix-node-group"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+  }
+}
+
+resource "aws_launch_template" "monitoring_lt" {
+  name                   = "monitoring_lt"
+  vpc_security_group_ids = [aws_security_group.eks_node.id, aws_security_group.eks_cluster.id]
+  
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "monitoring-node"
+    }
+  }
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+
+    ebs {
+      volume_size           = var.monitoring_disk_size  
+      volume_type           = "gp3"
+      delete_on_termination = true
+      encrypted             = true
+    }
+  }
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "optional"
+    http_put_response_hop_limit = 2
+  }
+
+  tags = {
+    Name                                        = "monitoring_lt"
+    "eks:cluster-name"                          = "tiket-cluster"
+    "eks:nodegroup-name"                        = "monitoring-node-group"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   }
 }
@@ -140,12 +175,18 @@ resource "aws_eks_node_group" "ondemand_node_group" {
   scaling_config {
     desired_size = 1
     min_size     = 1
-    max_size     = 1
+    max_size     = 2
+  }
+
+  labels = {
+    "node-type" = "on-demand"
+    "workload-type" = "critical"
   }
 
   tags = {
     Name                                        = "ondemand-node-group"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "karpenter.sh/discovery" = var.cluster_name
   }
   depends_on = [aws_launch_template.ondemand_lt,
     aws_iam_role_policy_attachment.eks_worker_policy_attach,
@@ -154,35 +195,83 @@ resource "aws_eks_node_group" "ondemand_node_group" {
   aws_iam_role_policy_attachment.eks_worker_AmazonEKSWorkerNodePolicy]
 }
 
-resource "aws_eks_node_group" "spot_node_group" {
+resource "aws_eks_node_group" "mix_node_group" {
   cluster_name    = aws_eks_cluster.cluster.name
-  node_group_name = "spot-node-group"
+  node_group_name = "mix-node-group"
   node_role_arn   = aws_iam_role.eks_worker_role.arn
   subnet_ids      = var.private_subnet_ids
-  capacity_type   = "SPOT"
+  capacity_type   = "ON_DEMAND"
   ami_type        = "AL2023_x86_64_STANDARD"
+  instance_types = var.mix_instance_types
 
   launch_template {
-    id      = aws_launch_template.spot_lt.id
+    id      = aws_launch_template.mix_lt.id
     version = "$Latest"
   }
 
-  instance_types = ["t3.large", "t3.medium"]
-
   scaling_config {
-    desired_size = 0
-    min_size     = 0
+    desired_size = 1
+    min_size     = 1
     max_size     = 2
   }
 
+    labels = {
+    "node-type" = "mix"
+    "workload-type" = "general"
+  }
+
   tags = {
-    Name                                        = "spot-node-group"
+    Name                                        = "mix-node-group"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "karpenter.sh/discovery" = var.cluster_name
 
   }
-  depends_on = [aws_launch_template.spot_lt,
+  depends_on = [aws_launch_template.mix_lt,
     aws_iam_role_policy_attachment.eks_worker_policy_attach,
     aws_iam_role_policy_attachment.eks_worker_AmazonEC2ContainerRegistryReadOnly,
     aws_iam_role_policy_attachment.eks_worker_AmazonEKS_CNI_Policy,
   aws_iam_role_policy_attachment.eks_worker_AmazonEKSWorkerNodePolicy]
+}
+
+resource "aws_eks_node_group" "monitoring_node_group" {
+  cluster_name    = aws_eks_cluster.cluster.name
+  node_group_name = "monitoring-node-group"
+  node_role_arn   = aws_iam_role.eks_worker_role.arn
+  subnet_ids      = var.private_subnet_ids
+  capacity_type   = "ON_DEMAND"
+  ami_type        = "AL2023_x86_64_STANDARD"
+  instance_types = ["t3.medium"]  
+
+  launch_template {
+    id      = aws_launch_template.monitoring_lt.id
+    version = "$Latest"
+  }
+
+  taint {
+    key    = "workload"
+    value  = "monitoring"
+    effect = "NO_SCHEDULE"  
+  }
+
+  scaling_config {
+    desired_size = 1  
+    min_size     = 1
+    max_size     = 1 
+  }
+
+  labels = {
+    "node-type" = "monitoring"
+    "workload-type" = "monitoring"
+  }
+
+  tags = {
+    Name                                        = "monitoring-node-group"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "karpenter.sh/discovery"                    = var.cluster_name
+  }
+  depends_on = [aws_launch_template.monitoring_lt,
+    aws_iam_role_policy_attachment.eks_worker_policy_attach,
+    aws_iam_role_policy_attachment.eks_worker_AmazonEC2ContainerRegistryReadOnly,
+    aws_iam_role_policy_attachment.eks_worker_AmazonEKS_CNI_Policy,
+    aws_iam_role_policy_attachment.eks_worker_AmazonEKSWorkerNodePolicy]
 }

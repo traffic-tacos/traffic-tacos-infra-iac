@@ -18,11 +18,19 @@ variable "private_subnet_ids" {
 }
 
 variable "ondemand_disk_size" {
+  type = number
   default = 50
 }
 
-variable "spot_disk_size" {
+variable "mix_disk_size" {
+  type = number
   default = 30
+}
+
+variable "monitoring_disk_size" {
+  type = number
+  default = 30
+  
 }
 
 variable "bastion_host_ip" {
@@ -96,4 +104,10 @@ variable "aws_region" {
   description = "AWS region for ALB zone ID mapping"
   type        = string
   default     = "ap-northeast-2"
+}
+
+variable "mix_instance_types" {
+  type  = list(string)
+  default = ["t3.medium", "t3.large", "t3.xlarge"]
+  
 }
