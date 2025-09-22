@@ -75,7 +75,7 @@ variable "eks_addons" {
       version = "v1.48.0-eksbuild.2"
     },
     {
-      name = "cert-manager"
+      name    = "cert-manager"
       version = "v1.18.2-eksbuild.2"
     },
     {
@@ -83,7 +83,7 @@ variable "eks_addons" {
       version = "v2.17.0-eksbuild.1"
     },
     {
-      name = "metrics-server"
+      name    = "metrics-server"
       version = "v0.8.0-eksbuild.2"
     }
     # Note: aws-gateway-api-controller is not supported in Kubernetes 1.33
