@@ -90,6 +90,10 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
     │   ├── elasticache.tf  # Redis 클러스터 및 설정
     │   ├── outputs.tf      # ElastiCache 모듈 출력
     │   └── var.tf          # ElastiCache 모듈 변수
+    ├── sqs/                 # SQS 모듈
+    │   ├── main.tf         # SQS 큐 및 DLQ 리소스 정의
+    │   ├── outputs.tf      # SQS 모듈 출력
+    │   └── var.tf          # SQS 모듈 변수
     └── vpc/                 # VPC 모듈
         ├── out.tf          # VPC 모듈 출력
         ├── var.tf          # VPC 모듈 변수
@@ -246,6 +250,22 @@ Redis 클러스터를 프로비저닝합니다:
 - `num_cache_clusters`: 클러스터 노드 수
 - `at_rest_encryption_enabled`: 미사용 데이터 암호화
 - `transit_encryption_enabled`: 전송 중 데이터 암호화
+
+### SQS 모듈 (`modules/sqs/`)
+
+결제 웹훅 처리를 위한 SQS 큐 인프라를 프로비저닝합니다:
+
+- **메인 큐**: 결제 웹훅 메시지 처리용 SQS 큐
+- **DLQ**: 실패한 메시지 보관을 위한 Dead Letter Queue
+- **보안**: KMS 암호화 및 IAM 역할 기반 접근 제어
+- **신뢰성**: 재시도 정책 및 메시지 가시성 타임아웃 설정
+
+**주요 변수**:
+- `queue_name`: SQS 큐 이름 (기본값: "payment-webhooks")
+- `visibility_timeout_seconds`: 메시지 가시성 타임아웃
+- `max_receive_count`: DLQ 이동 전 최대 재시도 횟수
+- `enable_dlq`: Dead Letter Queue 활성화 여부
+- `enable_encryption`: KMS 암호화 활성화 여부
 
 ### VPC 모듈 (`modules/vpc/`)
 
@@ -475,6 +495,15 @@ Redis Cluster         # 캐시 및 세션 스토어
 └── AUTH Token       # 보안 인증
 ```
 
+### 📤 SQS 큐
+```bash
+Payment Webhook Queue        # 결제 웹훅 메시지 처리
+├── Main Queue              # traffic-tacos-payment-webhooks
+├── Dead Letter Queue       # 실패 메시지 보관
+├── KMS Encryption         # 서버 사이드 암호화
+└── IAM Role & Policy      # 접근 권한 관리
+```
+
 ### 📊 모니터링
 ```bash
 AWS Managed Grafana   # 시각화 대시보드
@@ -505,6 +534,10 @@ EventBridge 관련 역할:
 모니터링 관련 역할:
 ├── Grafana Service Role # Grafana 워크스페이스 역할
 └── Prometheus Role      # 메트릭 수집 역할
+
+SQS 관련 역할:
+├── SQS Access Role      # 큐 접근 권한
+└── SQS Policy          # 메시지 송수신 정책
 ```
 
 ## 기여 가이드
