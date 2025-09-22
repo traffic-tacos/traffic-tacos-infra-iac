@@ -174,16 +174,30 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
 
 Kubernetes 클러스터와 관련 인프라를 프로비저닝합니다:
 
-- **EKS 클러스터**: Kubernetes 1.31 클러스터 및 노드 그룹
-- **AWS Gateway API**: Kubernetes Gateway API 컨트롤러 및 ALB 통합
+- **EKS 클러스터**: Kubernetes 1.33 클러스터 및 3개 노드 그룹
+- **노드 그룹**:
+  - `ondemand-node-group`: 중요 워크로드용 (t3.large)
+  - `mix-node-group`: 일반 워크로드용 (t3.medium/large/xlarge)
+  - `monitoring-node-group`: 모니터링 전용 (t3.medium, taint 적용)
+- **EKS 애드온**:
+  - 기본: vpc-cni, kube-proxy, coredns, aws-ebs-csi-driver
+  - 모니터링: kube-state-metrics, metrics-server, eks-node-monitoring-agent
+  - 인증서: cert-manager
+  - 보안: eks-pod-identity-agent
+- **AWS Gateway API**: Kubernetes Gateway API 컨트롤러 및 ALB 통합 (Kubernetes 1.33에서는 비활성화)
 - **보안**: IAM 역할, 보안 그룹, VPC 엔드포인트
 - **네트워킹**: Private 서브넷 배치, 베스천 호스트 접근
 
 **주요 변수**:
+- `cluster_version`: Kubernetes 버전 (기본값: "1.33")
 - `private_subnet_ids`: EKS 노드가 배치될 프라이빗 서브넷
+- `eks_addons`: EKS 애드온 목록 (9개 애드온 포함)
 - `enable_gateway_api`: Gateway API 활성화 여부
 - `domain_name`: ALB에 연결할 도메인 이름
 - `acm_certificate_arn`: SSL 인증서 ARN
+- `ondemand_disk_size`: On-demand 노드 디스크 크기 (기본값: 50GB)
+- `mix_disk_size`: Mix 노드 디스크 크기 (기본값: 30GB)
+- `monitoring_disk_size`: 모니터링 노드 디스크 크기 (기본값: 30GB)
 
 ### Route53 모듈 (`modules/route53/`)
 
@@ -442,9 +456,17 @@ NAT Gateway           # Private 서브넷 아웃바운드
 
 ### ☸️ EKS 클러스터
 ```bash
-EKS Cluster v1.31     # Kubernetes 클러스터
-├── Node Groups       # Private 서브넷 배치
-├── Gateway API       # ALB 컨트롤러 통합
+EKS Cluster v1.33     # Kubernetes 클러스터
+├── 3개 노드 그룹      # 워크로드별 분리 배치
+│   ├── ondemand-node-group    # 중요 워크로드 (t3.large)
+│   ├── mix-node-group         # 일반 워크로드 (t3.medium/large/xlarge)
+│   └── monitoring-node-group  # 모니터링 전용 (t3.medium, taint)
+├── 9개 EKS 애드온    # 모니터링, 보안, 인증서 관리
+│   ├── 기본 애드온: vpc-cni, kube-proxy, coredns, aws-ebs-csi-driver
+│   ├── 모니터링: kube-state-metrics, metrics-server, eks-node-monitoring-agent
+│   ├── 보안: eks-pod-identity-agent
+│   └── 인증서: cert-manager
+├── Gateway API       # ALB 컨트롤러 통합 (v1.33에서 임시 비활성화)
 └── VPC Endpoints     # AWS 서비스 접근
 ```
 
