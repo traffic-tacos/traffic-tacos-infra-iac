@@ -68,6 +68,23 @@ data "aws_secretsmanager_secret_version" "redis_auth" {
   secret_id = data.aws_secretsmanager_secret.redis_auth.id
 }
 
+locals {
+  # Secrets Manager에서 가져온 값이 JSON 형식인 경우를 처리
+  redis_auth_value = try(
+    jsondecode(data.aws_secretsmanager_secret_version.redis_auth.secret_string).password,
+    data.aws_secretsmanager_secret_version.redis_auth.secret_string
+  )
+
+  # auth_token은 영숫자만 허용하므로 base64로 인코딩
+  # base64 인코딩된 값에서 특수문자 제거 (=, +, / 제거)
+  redis_auth_token = replace(replace(replace(
+    base64encode(local.redis_auth_value),
+    "=", ""),
+    "+", ""),
+    "/", ""
+  )
+}
+
 resource "aws_elasticache_replication_group" "redis" {
   replication_group_id = var.cluster_name
   description          = "Redis cluster for ${var.project_name}"
@@ -86,7 +103,7 @@ resource "aws_elasticache_replication_group" "redis" {
 
   at_rest_encryption_enabled = var.at_rest_encryption_enabled
   transit_encryption_enabled = var.transit_encryption_enabled
-  auth_token                 = data.aws_secretsmanager_secret_version.redis_auth.secret_string
+  auth_token                 = local.redis_auth_token
   auth_token_update_strategy = "SET"
 
   automatic_failover_enabled = var.automatic_failover_enabled
