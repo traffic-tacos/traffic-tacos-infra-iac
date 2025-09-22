@@ -52,27 +52,32 @@ resource "kubernetes_manifest" "api_gateway" {
 }
 
 # Data source to get the ALB information from the Gateway
-data "kubernetes_resource" "gateway_status" {
-  count = var.enable_gateway_api ? 1 : 0
-
-  api_version = "gateway.networking.k8s.io/v1"
-  kind        = "Gateway"
-
-  metadata {
-    name      = "api-gateway"
-    namespace = "default"
-  }
-
-  depends_on = [kubernetes_manifest.api_gateway]
-}
+# Commented out to avoid circular dependency during initial deployment
+# Uncomment after the cluster and Gateway are created
+# data "kubernetes_resource" "gateway_status" {
+#   count = var.enable_gateway_api ? 1 : 0
+#
+#   api_version = "gateway.networking.k8s.io/v1"
+#   kind        = "Gateway"
+#
+#   metadata {
+#     name      = "api-gateway"
+#     namespace = "default"
+#   }
+#
+#   depends_on = [kubernetes_manifest.api_gateway]
+# }
 
 locals {
   # Extract ALB DNS name and zone ID from Gateway status
-  gateway_status = var.enable_gateway_api ? data.kubernetes_resource.gateway_status[0].object.status : null
+  # Temporarily using empty values to avoid circular dependency
+  # gateway_status = var.enable_gateway_api ? data.kubernetes_resource.gateway_status[0].object.status : null
 
-  alb_hostname = var.enable_gateway_api && local.gateway_status != null ? (
-    try(local.gateway_status.addresses[0].value, "")
-  ) : ""
+  # alb_hostname = var.enable_gateway_api && local.gateway_status != null ? (
+  #   try(local.gateway_status.addresses[0].value, "")
+  # ) : ""
+
+  alb_hostname = ""  # Placeholder - will be populated after Gateway is created
 
   # AWS ALB zone IDs by region
   alb_zone_ids = {
@@ -91,5 +96,6 @@ locals {
     "eu-west-3"      = "Z3Q77PNBQS71R4"
   }
 
-  alb_zone_id = var.enable_gateway_api ? lookup(local.alb_zone_ids, var.aws_region, "ZWKZPGTI48KDX") : ""
+  # alb_zone_id = var.enable_gateway_api ? lookup(local.alb_zone_ids, var.aws_region, "ZWKZPGTI48KDX") : ""
+  alb_zone_id = ""  # Placeholder - will be populated after Gateway is created
 }
