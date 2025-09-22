@@ -57,7 +57,8 @@ data "kubernetes_resource" "gateway_status" {
 
   api_version = "gateway.networking.k8s.io/v1"
   kind        = "Gateway"
-  metadata = {
+
+  metadata {
     name      = "api-gateway"
     namespace = "default"
   }
