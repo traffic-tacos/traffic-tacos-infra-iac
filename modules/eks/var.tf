@@ -18,19 +18,19 @@ variable "private_subnet_ids" {
 }
 
 variable "ondemand_disk_size" {
-  type = number
+  type    = number
   default = 50
 }
 
 variable "mix_disk_size" {
-  type = number
+  type    = number
   default = 30
 }
 
 variable "monitoring_disk_size" {
-  type = number
+  type    = number
   default = 30
-  
+
 }
 
 variable "bastion_host_ip" {
@@ -107,7 +107,7 @@ variable "aws_region" {
 }
 
 variable "mix_instance_types" {
-  type  = list(string)
+  type    = list(string)
   default = ["t3.medium", "t3.large", "t3.xlarge"]
-  
+
 }

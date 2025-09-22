@@ -54,7 +54,7 @@ resource "aws_eks_addon" "eks_addons" {
 resource "aws_launch_template" "ondemand_lt" {
   name                   = "ondemand_lt"
   vpc_security_group_ids = [aws_security_group.eks_node.id, aws_security_group.eks_cluster.id]
-  instance_type = "t3.large"
+  instance_type          = "t3.large"
   tag_specifications {
     resource_type = "instance"
     tags = {
@@ -126,7 +126,7 @@ resource "aws_launch_template" "mix_lt" {
 resource "aws_launch_template" "monitoring_lt" {
   name                   = "monitoring_lt"
   vpc_security_group_ids = [aws_security_group.eks_node.id, aws_security_group.eks_cluster.id]
-  
+
   tag_specifications {
     resource_type = "instance"
     tags = {
@@ -138,7 +138,7 @@ resource "aws_launch_template" "monitoring_lt" {
     device_name = "/dev/xvda"
 
     ebs {
-      volume_size           = var.monitoring_disk_size  
+      volume_size           = var.monitoring_disk_size
       volume_type           = "gp3"
       delete_on_termination = true
       encrypted             = true
@@ -179,14 +179,14 @@ resource "aws_eks_node_group" "ondemand_node_group" {
   }
 
   labels = {
-    "node-type" = "on-demand"
+    "node-type"     = "on-demand"
     "workload-type" = "critical"
   }
 
   tags = {
     Name                                        = "ondemand-node-group"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    "karpenter.sh/discovery" = var.cluster_name
+    "karpenter.sh/discovery"                    = var.cluster_name
   }
   depends_on = [aws_launch_template.ondemand_lt,
     aws_iam_role_policy_attachment.eks_worker_policy_attach,
@@ -202,7 +202,7 @@ resource "aws_eks_node_group" "mix_node_group" {
   subnet_ids      = var.private_subnet_ids
   capacity_type   = "ON_DEMAND"
   ami_type        = "AL2023_x86_64_STANDARD"
-  instance_types = var.mix_instance_types
+  instance_types  = var.mix_instance_types
 
   launch_template {
     id      = aws_launch_template.mix_lt.id
@@ -215,15 +215,15 @@ resource "aws_eks_node_group" "mix_node_group" {
     max_size     = 2
   }
 
-    labels = {
-    "node-type" = "mix"
+  labels = {
+    "node-type"     = "mix"
     "workload-type" = "general"
   }
 
   tags = {
     Name                                        = "mix-node-group"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    "karpenter.sh/discovery" = var.cluster_name
+    "karpenter.sh/discovery"                    = var.cluster_name
 
   }
   depends_on = [aws_launch_template.mix_lt,
@@ -240,7 +240,7 @@ resource "aws_eks_node_group" "monitoring_node_group" {
   subnet_ids      = var.private_subnet_ids
   capacity_type   = "ON_DEMAND"
   ami_type        = "AL2023_x86_64_STANDARD"
-  instance_types = ["t3.medium"]  
+  instance_types  = ["t3.medium"]
 
   launch_template {
     id      = aws_launch_template.monitoring_lt.id
@@ -250,17 +250,17 @@ resource "aws_eks_node_group" "monitoring_node_group" {
   taint {
     key    = "workload"
     value  = "monitoring"
-    effect = "NO_SCHEDULE"  
+    effect = "NO_SCHEDULE"
   }
 
   scaling_config {
-    desired_size = 1  
+    desired_size = 1
     min_size     = 1
-    max_size     = 1 
+    max_size     = 1
   }
 
   labels = {
-    "node-type" = "monitoring"
+    "node-type"     = "monitoring"
     "workload-type" = "monitoring"
   }
 
@@ -273,5 +273,5 @@ resource "aws_eks_node_group" "monitoring_node_group" {
     aws_iam_role_policy_attachment.eks_worker_policy_attach,
     aws_iam_role_policy_attachment.eks_worker_AmazonEC2ContainerRegistryReadOnly,
     aws_iam_role_policy_attachment.eks_worker_AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.eks_worker_AmazonEKSWorkerNodePolicy]
+  aws_iam_role_policy_attachment.eks_worker_AmazonEKSWorkerNodePolicy]
 }

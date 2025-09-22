@@ -3,7 +3,7 @@ resource "aws_security_group" "eks_node" {
   vpc_id = var.vpc_id
 
   tags = {
-    Name                                        = "${var.cluster_name}-node-sg"
+    Name = "${var.cluster_name}-node-sg"
   }
 }
 
