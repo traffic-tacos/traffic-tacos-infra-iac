@@ -15,7 +15,7 @@ data "aws_iam_policy_document" "karpenter_controller_assume_role" {
 resource "aws_iam_role" "karpenter_controller" {
   name               = "${var.cluster_name}-karpenter-controller"
   assume_role_policy = data.aws_iam_policy_document.karpenter_controller_assume_role.json
-  
+
   tags = {
     Name = "${var.cluster_name}-karpenter-controller"
   }
@@ -24,12 +24,12 @@ resource "aws_iam_role" "karpenter_controller" {
 
 resource "aws_iam_policy" "karpenter_controller" {
   name = "${var.cluster_name}-karpenter-controller-policy"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid = "KarpenterControllerEC2Permissions"
+        Sid    = "KarpenterControllerEC2Permissions"
         Effect = "Allow"
         Action = [
           "ec2:CreateFleet",
@@ -54,9 +54,9 @@ resource "aws_iam_policy" "karpenter_controller" {
         Resource = "*"
       },
       {
-        Sid = "ConditionalEC2Termination"
-        Effect = "Allow"
-        Action = "ec2:TerminateInstances"
+        Sid      = "ConditionalEC2Termination"
+        Effect   = "Allow"
+        Action   = "ec2:TerminateInstances"
         Resource = "*"
         Condition = {
           StringLike = {
@@ -65,19 +65,19 @@ resource "aws_iam_policy" "karpenter_controller" {
         }
       },
       {
-        Sid = "PassNodeInstanceRole"
-        Effect = "Allow"
-        Action = "iam:PassRole"
+        Sid      = "PassNodeInstanceRole"
+        Effect   = "Allow"
+        Action   = "iam:PassRole"
         Resource = aws_iam_role.eks_worker_role.arn
       },
       {
-        Sid = "EKSClusterEndpointLookup"
-        Effect = "Allow"
-        Action = "eks:DescribeCluster"
+        Sid      = "EKSClusterEndpointLookup"
+        Effect   = "Allow"
+        Action   = "eks:DescribeCluster"
         Resource = aws_eks_cluster.cluster.arn
       },
       {
-        Sid = "KarpenterIAMRoleManagement"
+        Sid    = "KarpenterIAMRoleManagement"
         Effect = "Allow"
         Action = [
           "iam:ListInstanceProfiles",
@@ -86,14 +86,14 @@ resource "aws_iam_policy" "karpenter_controller" {
           "iam:TagInstanceProfile",
           "iam:AddRoleToInstanceProfile",
           "iam:RemoveRoleFromInstanceProfile",
-          "iam:DeleteInstanceProfile" 
+          "iam:DeleteInstanceProfile"
         ]
         Resource = "*"
       },
       {
-        Sid = "AllowScopedInstanceProfileCreation"
-        Effect = "Allow"
-        Action = "iam:CreateInstanceProfile"
+        Sid      = "AllowScopedInstanceProfileCreation"
+        Effect   = "Allow"
+        Action   = "iam:CreateInstanceProfile"
         Resource = "*"
         Condition = {
           StringEquals = {
@@ -102,7 +102,7 @@ resource "aws_iam_policy" "karpenter_controller" {
         }
       },
       {
-        Sid = "AllowScopedInstanceProfileActions"
+        Sid    = "AllowScopedInstanceProfileActions"
         Effect = "Allow"
         Action = [
           "iam:TagInstanceProfile",
@@ -133,7 +133,7 @@ resource "aws_eks_pod_identity_association" "karpenter" {
   namespace       = "karpenter"
   service_account = "karpenter"
   role_arn        = aws_iam_role.karpenter_controller.arn
-  
+
   depends_on = [
     aws_eks_cluster.cluster,
     aws_iam_role.karpenter_controller
@@ -144,7 +144,7 @@ resource "aws_eks_pod_identity_association" "karpenter" {
 resource "aws_sqs_queue" "karpenter_interruption" {
   name                      = "${var.cluster_name}-karpenter-interruption"
   message_retention_seconds = 300
-  
+
   tags = {
     Name = "${var.cluster_name}-karpenter-interruption"
   }
@@ -155,7 +155,7 @@ resource "aws_sqs_queue" "karpenter_interruption" {
 resource "aws_cloudwatch_event_rule" "spot_interruption" {
   name        = "${var.cluster_name}-spot-interruption"
   description = "Spot Instance Interruption Warning"
-  
+
   event_pattern = jsonencode({
     source      = ["aws.ec2"]
     detail-type = ["EC2 Spot Instance Interruption Warning"]
@@ -171,7 +171,7 @@ resource "aws_cloudwatch_event_target" "spot_interruption" {
 resource "aws_cloudwatch_event_rule" "instance_state_change" {
   name        = "${var.cluster_name}-instance-state-change"
   description = "EC2 Instance State Change"
-  
+
   event_pattern = jsonencode({
     source      = ["aws.ec2"]
     detail-type = ["EC2 Instance State-change Notification"]
@@ -187,7 +187,7 @@ resource "aws_cloudwatch_event_target" "instance_state_change" {
 
 resource "aws_sqs_queue_policy" "karpenter_interruption" {
   queue_url = aws_sqs_queue.karpenter_interruption.id
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -213,7 +213,7 @@ resource "aws_sqs_queue_policy" "karpenter_interruption" {
 
 resource "aws_iam_policy" "karpenter_interruption_queue" {
   name = "${var.cluster_name}-karpenter-interruption-queue"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -240,7 +240,7 @@ resource "aws_iam_role_policy_attachment" "karpenter_interruption_queue" {
 resource "aws_iam_role_policy" "worker_node_karpenter" {
   name = "karpenter-node-policy"
   role = aws_iam_role.eks_worker_role.id
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
