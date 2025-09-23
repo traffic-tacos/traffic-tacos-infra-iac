@@ -291,3 +291,29 @@ module "sqs" {
     Project     = var.project_name
   }
 }
+
+module "sqs_reservation_events" {
+  source = "./modules/sqs"
+
+  name       = var.project_name
+  queue_name = "reservation-events"
+
+  visibility_timeout_seconds = 30
+  message_retention_seconds  = 1209600 # 14일
+  max_receive_count          = 3
+  delay_seconds              = 0
+  receive_wait_time_seconds  = 20
+
+  enable_dlq                    = true
+  dlq_message_retention_seconds = 1209600 # 14일
+
+  enable_encryption = true
+  kms_master_key_id = "alias/aws/sqs"
+
+  tags = {
+    Environment = "dev"
+    Service     = "reservation"
+    Component   = "events"
+    Project     = var.project_name
+  }
+}

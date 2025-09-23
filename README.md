@@ -268,15 +268,22 @@ Redis 클러스터를 프로비저닝합니다:
 
 ### SQS 모듈 (`modules/sqs/`)
 
-결제 웹훅 처리를 위한 SQS 큐 인프라를 프로비저닝합니다:
+이벤트 기반 메시지 처리를 위한 SQS 큐 인프라를 프로비저닝합니다:
 
-- **메인 큐**: 결제 웹훅 메시지 처리용 SQS 큐
+- **메인 큐**: 메시지 처리용 SQS 큐
 - **DLQ**: 실패한 메시지 보관을 위한 Dead Letter Queue
 - **보안**: KMS 암호화 및 IAM 역할 기반 접근 제어
 - **신뢰성**: 재시도 정책 및 메시지 가시성 타임아웃 설정
 
+**배포된 큐**:
+- `traffic-tacos-payment-webhooks`: 결제 웹훅 메시지 처리
+- `traffic-tacos-reservation-events`: 예약 라이프사이클 이벤트 처리
+  - 예약 만료 처리 (reservation.expired)
+  - 결제 완료 후 예약 확정 (payment.approved)
+  - 결제 실패 시 예약 해제 (payment.failed)
+
 **주요 변수**:
-- `queue_name`: SQS 큐 이름 (기본값: "payment-webhooks")
+- `queue_name`: SQS 큐 이름
 - `visibility_timeout_seconds`: 메시지 가시성 타임아웃
 - `max_receive_count`: DLQ 이동 전 최대 재시도 횟수
 - `enable_dlq`: Dead Letter Queue 활성화 여부
@@ -523,6 +530,12 @@ Redis Cluster         # 캐시 및 세션 스토어
 ```bash
 Payment Webhook Queue        # 결제 웹훅 메시지 처리
 ├── Main Queue              # traffic-tacos-payment-webhooks
+├── Dead Letter Queue       # 실패 메시지 보관
+├── KMS Encryption         # 서버 사이드 암호화
+└── IAM Role & Policy      # 접근 권한 관리
+
+Reservation Events Queue     # 예약 이벤트 처리
+├── Main Queue              # traffic-tacos-reservation-events
 ├── Dead Letter Queue       # 실패 메시지 보관
 ├── KMS Encryption         # 서버 사이드 암호화
 └── IAM Role & Policy      # 접근 권한 관리
