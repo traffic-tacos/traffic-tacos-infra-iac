@@ -90,7 +90,11 @@ resource "aws_iam_role_policy_attachment" "eks_worker_AmazonEC2ContainerRegistry
 resource "aws_iam_role_policy_attachment" "eks_worker_AmazonEFSDriverpolicy" {
   role       = aws_iam_role.eks_worker_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
+}
 
+resource "aws_iam_role_policy_attachment" "eks_worker_AmazonSSMpolicy" {
+  role = aws_iam_role.eks_worker_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_role" "ebs_csi" {
