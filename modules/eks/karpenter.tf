@@ -77,6 +77,12 @@ resource "aws_iam_policy" "karpenter_controller" {
         Resource = aws_eks_cluster.cluster.arn
       },
       {
+        Sid      = "EKSAuthPermissions"
+        Effect   = "Allow"
+        Action   = "eks-auth:Connect"
+        Resource = aws_eks_cluster.cluster.arn
+      },
+      {
         Sid    = "KarpenterIAMRoleManagement"
         Effect = "Allow"
         Action = [
@@ -120,7 +126,6 @@ resource "aws_iam_policy" "karpenter_controller" {
     ]
   })
 }
-
 
 resource "aws_iam_role_policy_attachment" "karpenter_controller" {
   role       = aws_iam_role.karpenter_controller.name
