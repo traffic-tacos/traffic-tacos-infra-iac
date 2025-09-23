@@ -44,7 +44,8 @@ resource "aws_subnet" "private_app" {
     Tier                                   = "private-app",
     Name                                   = "${var.name}-app-subnet-${each.key}",
     "kubernetes.io/role/internal-elb"      = "1",
-    "kubernetes.io/cluster/ticket-cluster" = "owned"
+    "kubernetes.io/cluster/ticket-cluster" = "owned",
+    "karpenter.sh/discovery"               = "ticket-cluster"
   }
 }
 

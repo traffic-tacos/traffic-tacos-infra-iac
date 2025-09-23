@@ -267,7 +267,6 @@ resource "aws_eks_node_group" "monitoring_node_group" {
   tags = {
     Name                                        = "monitoring-node-group"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    "karpenter.sh/discovery"                    = var.cluster_name
   }
   depends_on = [aws_launch_template.monitoring_lt,
     aws_iam_role_policy_attachment.eks_worker_policy_attach,
