@@ -197,6 +197,7 @@ resource "aws_sqs_queue_policy" "karpenter_interruption" {
     Version = "2012-10-17"
     Statement = [
       {
+        # Existing statement for EventBridge is correct
         Effect = "Allow"
         Principal = {
           Service = "events.amazonaws.com"
@@ -211,6 +212,18 @@ resource "aws_sqs_queue_policy" "karpenter_interruption" {
             ]
           }
         }
+      },
+      {
+        Effect = "Allow"
+        Principal = {
+          "AWS" = aws_iam_role.karpenter_controller.arn
+        }
+        Action = [
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueUrl"
+        ]
+        Resource = aws_sqs_queue.karpenter_interruption.arn
       }
     ]
   })
