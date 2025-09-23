@@ -187,6 +187,7 @@ Kubernetes 클러스터와 관련 인프라를 프로비저닝합니다:
 - **AWS Gateway API**: Kubernetes Gateway API 컨트롤러 및 ALB 통합 (Kubernetes 1.33에서는 비활성화)
 - **보안**: IAM 역할, 보안 그룹, VPC 엔드포인트
 - **네트워킹**: Private 서브넷 배치, 베스천 호스트 접근
+- **IAM 정책**: EFS, SSM 접근 권한 추가, EBS CSI 드라이버용 pod identity association
 
 **주요 변수**:
 - `cluster_version`: Kubernetes 버전 (기본값: "1.33")
@@ -289,6 +290,7 @@ Redis 클러스터를 프로비저닝합니다:
 - 인터넷 게이트웨이 및 NAT 게이트웨이
 - 보안 그룹 및 네트워크 ACL
 - Kubernetes 태그 지원
+- Karpenter 태그 지원 (private app 서브넷에 `karpenter.sh/discovery` 태그 추가)
 
 **입력 변수**:
 
@@ -541,7 +543,8 @@ AWS Managed Prometheus # 메트릭 수집/저장
 ```bash
 EKS 관련 역할:
 ├── EKS Cluster Role     # 클러스터 서비스 역할
-├── EKS Node Group Role  # 노드 그룹 서비스 역할
+├── EKS Node Group Role  # 노드 그룹 서비스 역할 (EFS, SSM 정책 포함)
+├── EBS CSI Driver Role  # EBS CSI 드라이버용 Pod Identity 역할
 └── ALB Controller Role  # Gateway API 컨트롤러 역할
 
 DynamoDB 관련 역할:
