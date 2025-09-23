@@ -3,7 +3,8 @@ resource "aws_security_group" "eks_node" {
   vpc_id = var.vpc_id
 
   tags = {
-    Name = "${var.cluster_name}-node-sg"
+    Name                     = "${var.cluster_name}-node-sg"
+    "karpenter.sh/discovery" = var.cluster_name
   }
 }
 
@@ -14,6 +15,7 @@ resource "aws_security_group" "eks_cluster" {
   tags = {
     Name                                        = "${var.cluster_name}-cluster-sg"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "karpenter.sh/discovery"                    = var.cluster_name
   }
 }
 

@@ -121,3 +121,24 @@ resource "aws_eks_pod_identity_association" "ebs_csi" {
   role_arn        = aws_iam_role.ebs_csi.arn
   depends_on      = [aws_iam_role.ebs_csi, aws_eks_cluster.cluster]
 }
+
+resource "aws_iam_instance_profile" "karpenter_instance_profile" {
+  name = "KarpenterInstanceProfile"
+  role = aws_iam_role.eks_worker_role.id
+}
+
+resource "aws_iam_role_policy" "ecr_public_access" {
+  name = "ecr-public-access-policy"
+  role = aws_iam_role.eks_worker_role.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "ecr-public:GetAuthorizationToken"
+        Resource = "*"
+      },
+    ]
+  })
+}
+

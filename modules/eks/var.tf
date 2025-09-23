@@ -6,6 +6,12 @@ variable "vpc_id" {
   type = string
 }
 
+variable "name" {
+  type    = string
+  default = ticket
+
+}
+
 variable "vpc_cidr" {
   type = string
 }
