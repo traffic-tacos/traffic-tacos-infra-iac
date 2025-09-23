@@ -8,8 +8,7 @@ variable "vpc_id" {
 
 variable "name" {
   type    = string
-  default = ticket
-
+  default = "ticket"
 }
 
 variable "vpc_cidr" {
