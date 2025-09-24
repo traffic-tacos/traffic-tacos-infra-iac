@@ -14,7 +14,7 @@ resource "aws_ecr_repository" "gateway_api" {
   tags = merge(var.tags, {
     Name        = "${var.project_name}-gateway-api"
     Service     = "gateway-api"
-    Description = "Go + Fiber BFF (Backend for Frontend)"
+    Description = "Go + Fiber BFF"
   })
 }
 
