@@ -95,6 +95,10 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
     │   ├── main.tf         # SQS 큐 및 DLQ 리소스 정의
     │   ├── outputs.tf      # SQS 모듈 출력
     │   └── var.tf          # SQS 모듈 변수
+    ├── ecr/                 # ECR 컨테이너 레지스트리 모듈
+    │   ├── ecr.tf          # ECR 저장소 및 라이프사이클 정책
+    │   ├── outputs.tf      # ECR 모듈 출력
+    │   └── var.tf          # ECR 모듈 변수
     └── vpc/                 # VPC 모듈
         ├── out.tf          # VPC 모듈 출력
         ├── var.tf          # VPC 모듈 변수
@@ -378,6 +382,26 @@ AWS Managed Prometheus 서비스를 프로비저닝합니다:
 - **보안**: VPC 내 보안 접근 및 IAM 기반 인증
 - **Grafana 통합**: AWS Grafana와의 데이터 소스 연동
 
+### ECR 모듈 (`modules/ecr/`)
+
+마이크로서비스용 Docker 컨테이너 이미지 저장소를 프로비저닝합니다:
+
+- **5개 ECR 저장소**: Traffic Tacos 마이크로서비스별 컨테이너 레지스트리
+  - `gateway-api`: Go + Fiber BFF (Backend for Frontend)
+  - `reservation-api`: Kotlin + Spring Boot WebFlux 핵심 예약 서비스
+  - `inventory-api`: Go + gRPC 고성능 재고 관리
+  - `payment-sim-api`: Go + gRPC 결제 처리 시뮬레이터
+  - `reservation-worker`: Go/Kotlin Kubernetes Job + KEDA 오토스케일링 워커
+- **보안 기능**: 이미지 스캔 자동화, AES256 암호화
+- **라이프사이클 정책**: 이미지 보관 정책으로 스토리지 비용 최적화
+  - 프로덕션 이미지: 최근 10개 보관
+  - 개발 이미지: 최근 5개 보관
+  - 태그 없는 이미지: 1일 후 자동 삭제
+
+**주요 변수**:
+- `project_name`: 프로젝트 이름 (기본값: "traffic-tacos")
+- `tags`: 리소스 태그 맵
+
 ### RDS 모듈 (`modules/rds/`)
 
 개발 예정 기능:
@@ -559,6 +583,23 @@ AWS Managed Grafana   # 시각화 대시보드
 AWS Managed Prometheus # 메트릭 수집/저장
 ├── EKS 통합         # 클러스터 메트릭
 └── 애플리케이션 메트릭 # 커스텀 메트릭
+```
+
+### 🐳 ECR 컨테이너 레지스트리
+```bash
+traffic-tacos-gateway-api         # Go + Fiber BFF
+├── 이미지 스캔                 # 보안 취약점 자동 스캔
+├── AES256 암호화              # 이미지 암호화
+└── 라이프사이클 정책           # 이미지 자동 정리
+
+traffic-tacos-reservation-api     # Kotlin + Spring Boot WebFlux
+├── 프로덕션 이미지 10개 보관    # v*, release* 태그
+├── 개발 이미지 5개 보관        # dev*, feature*, hotfix* 태그
+└── 태그 없는 이미지 1일 후 삭제
+
+traffic-tacos-inventory-api       # Go + gRPC 재고 관리
+traffic-tacos-payment-sim-api     # Go + gRPC 결제 시뮬레이터
+traffic-tacos-reservation-worker  # Go/Kotlin K8s Job + KEDA
 ```
 
 ### 👤 IAM 역할
