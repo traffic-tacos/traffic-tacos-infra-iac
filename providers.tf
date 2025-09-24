@@ -42,7 +42,7 @@ provider "kubernetes" {
   # Use conditional configuration to avoid connection issues during initial deployment
   host                   = try(module.eks.cluster_endpoint, "https://kubernetes.default.svc")
   cluster_ca_certificate = try(base64decode(module.eks.cluster_certificate_authority_data), "")
-  insecure               = true # Only for initial deployment
+  # insecure               = true # Only for initial deployment
 
   dynamic "exec" {
     for_each = can(module.eks.cluster_id) ? [1] : []
@@ -65,7 +65,7 @@ provider "helm" {
   kubernetes = {
     host                   = try(module.eks.cluster_endpoint, "https://kubernetes.default.svc")
     cluster_ca_certificate = try(base64decode(module.eks.cluster_certificate_authority_data), "")
-    insecure               = true # Only for initial deployment
+    # insecure               = true # Only for initial deployment
 
     exec = can(module.eks.cluster_id) ? {
       api_version = "client.authentication.k8s.io/v1beta1"
