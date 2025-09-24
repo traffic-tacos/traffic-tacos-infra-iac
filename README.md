@@ -44,9 +44,10 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
     │   ├── iam.tf          # Grafana IAM 역할 및 정책
     │   ├── sso.tf          # SSO 설정
     │   └── var.tf          # Grafana 모듈 변수
-    ├── awsprometheus/         # AWS Prometheus 모듈
-    │   ├── awsprometheus.tf    # Prometheus 리소스 정의
-    │   └── var.tf          # Prometheus 모듈 변수
+    ├── awsprometheus/      # AWS Prometheus 모듈
+    │   ├── awsprometheus.tf   # Prometheus 리소스 정의
+    │   ├── outputs.tf         # Prometheus 모듈 출력
+    │   └── var.tf             # Prometheus 모듈 변수
     ├── ec2/                 # EC2 모듈
     │   ├── ec2.tf          # EC2 인스턴스 리소스 정의
     │   ├── out.tf          # EC2 모듈 출력
