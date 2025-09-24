@@ -62,25 +62,23 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = try(module.eks.cluster_endpoint, "https://kubernetes.default.svc")
     cluster_ca_certificate = try(base64decode(module.eks.cluster_certificate_authority_data), "")
     insecure               = true # Only for initial deployment
 
-    dynamic "exec" {
-      for_each = can(module.eks.cluster_id) ? [1] : []
-      content {
-        api_version = "client.authentication.k8s.io/v1beta1"
-        command     = "aws"
-        args = [
-          "eks",
-          "get-token",
-          "--cluster-name",
-          module.eks.cluster_id,
-          "--region",
-          var.region
-        ]
-      }
-    }
+    exec = can(module.eks.cluster_id) ? {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        module.eks.cluster_id,
+        "--region",
+        var.region
+      ]
+    } : null
   }
 }
+  
