@@ -143,18 +143,9 @@ resource "aws_iam_role_policy" "ecr_public_access" {
 }
 
 # OIDC Provider for IRSA (IAM Roles for Service Accounts)
-data "tls_certificate" "cluster" {
+# Use existing OIDC provider instead of creating a new one
+data "aws_iam_openid_connect_provider" "cluster" {
   url = aws_eks_cluster.cluster.identity[0].oidc[0].issuer
-}
-
-resource "aws_iam_openid_connect_provider" "cluster" {
-  url             = aws_eks_cluster.cluster.identity[0].oidc[0].issuer
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.tls_certificate.cluster.certificates[0].sha1_fingerprint]
-
-  tags = {
-    Name = "${var.cluster_name}-oidc-provider"
-  }
 }
 
 # OpenTelemetry Collector IAM Role for Service Account
@@ -163,7 +154,7 @@ data "aws_iam_policy_document" "otel_collector_assume_role_policy" {
     effect = "Allow"
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.cluster.arn]
+      identifiers = [data.aws_iam_openid_connect_provider.cluster.arn]
     }
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
