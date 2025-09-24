@@ -15,6 +15,8 @@ module "eks" {
   acm_certificate_arn = aws_acm_certificate_validation.main.certificate_arn
   aws_region          = var.region
 
+  # Prometheus configuration
+  prometheus_workspace_endpoint = module.awsprometheus.workspace_prometheus_endpoint
 }
 
 module "ec2" {

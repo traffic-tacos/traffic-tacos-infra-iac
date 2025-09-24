@@ -127,3 +127,9 @@ variable "mix_instance_types" {
   type    = list(string)
   default = ["t3.medium", "t3.large", "t3.xlarge"]
 }
+
+variable "prometheus_workspace_endpoint" {
+  description = "AWS Managed Prometheus workspace endpoint"
+  type        = string
+  default     = ""
+}
