@@ -142,3 +142,106 @@ resource "aws_iam_role_policy" "ecr_public_access" {
   })
 }
 
+# OIDC Provider for IRSA (IAM Roles for Service Accounts)
+data "tls_certificate" "cluster" {
+  url = aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+}
+
+resource "aws_iam_openid_connect_provider" "cluster" {
+  url             = aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.cluster.certificates[0].sha1_fingerprint]
+
+  tags = {
+    Name = "${var.cluster_name}-oidc-provider"
+  }
+}
+
+# OpenTelemetry Collector IAM Role for Service Account
+data "aws_iam_policy_document" "otel_collector_assume_role_policy" {
+  statement {
+    effect = "Allow"
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.cluster.arn]
+    }
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_eks_cluster.cluster.identity[0].oidc[0].issuer, "https://", "")}:sub"
+      values   = ["system:serviceaccount:otel-collector:otel-collector-sa"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_eks_cluster.cluster.identity[0].oidc[0].issuer, "https://", "")}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "otel_collector_role" {
+  name               = "${var.cluster_name}-otel-collector-role"
+  assume_role_policy = data.aws_iam_policy_document.otel_collector_assume_role_policy.json
+
+  tags = {
+    Name = "${var.cluster_name}-otel-collector-role"
+  }
+}
+
+# OpenTelemetry Collector IAM Policy
+resource "aws_iam_policy" "otel_collector_policy" {
+  name        = "${var.cluster_name}-otel-collector-policy"
+  description = "IAM policy for OpenTelemetry Collector with X-Ray, CloudWatch access"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      # CloudWatch, EC2, Logs, X-Ray permissions
+      {
+        Effect = "Allow"
+        Action = [
+          # CloudWatch Metrics
+          "cloudwatch:PutMetricData",
+          "cloudwatch:GetMetricStatistics",
+          "cloudwatch:ListMetrics",
+          # EC2 Metadata
+          "ec2:DescribeVolumes",
+          "ec2:DescribeTags",
+          "ec2:DescribeInstances",
+          # CloudWatch Logs
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams",
+          "logs:DescribeLogGroups",
+          "logs:CreateLogStream",
+          "logs:CreateLogGroup",
+          # AWS X-Ray
+          "xray:PutTraceSegments",
+          "xray:PutTelemetryRecords",
+          "xray:GetSamplingRules",
+          "xray:GetSamplingTargets",
+          "xray:GetSamplingStatisticSummaries"
+        ]
+        Resource = "*"
+      },
+      # Amazon Managed Service for Prometheus (AMP)
+      {
+        Effect = "Allow"
+        Action = [
+          "aps:RemoteWrite",
+          "aps:GetSeries",
+          "aps:GetLabels",
+          "aps:GetMetricMetadata"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "otel_collector_policy_attachment" {
+  role       = aws_iam_role.otel_collector_role.name
+  policy_arn = aws_iam_policy.otel_collector_policy.arn
+}
+
