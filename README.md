@@ -55,6 +55,7 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
     ├── eks/                 # EKS 모듈
     │   ├── eks.tf          # EKS 클러스터 리소스 정의
     │   ├── iam.tf          # EKS IAM 역할 및 정책
+    │   ├── karpenter.tf    # Karpenter 오토스케일링 설정
     │   ├── sg.tf           # EKS Security Group 정의
     │   ├── gateway.tf      # AWS Gateway API 컨트롤러 및 ALB 설정
     │   ├── outputs.tf      # EKS 모듈 출력
@@ -179,6 +180,10 @@ Kubernetes 클러스터와 관련 인프라를 프로비저닝합니다:
   - `ondemand-node-group`: 중요 워크로드용 (t3.large)
   - `mix-node-group`: 일반 워크로드용 (t3.medium/large/xlarge)
   - `monitoring-node-group`: 모니터링 전용 (t3.medium, taint 적용)
+- **Karpenter 오토스케일링**:
+  - 자동 노드 프로비저닝 및 스케일링
+  - Spot 인스턴스 중단 처리 (SQS 기반)
+  - Pod Identity를 통한 보안 인증
 - **EKS 애드온**:
   - 기본: vpc-cni, kube-proxy, coredns, aws-ebs-csi-driver
   - 모니터링: kube-state-metrics, metrics-server, eks-node-monitoring-agent
@@ -470,6 +475,10 @@ EKS Cluster v1.33     # Kubernetes 클러스터
 │   ├── ondemand-node-group    # 중요 워크로드 (t3.large)
 │   ├── mix-node-group         # 일반 워크로드 (t3.medium/large/xlarge)
 │   └── monitoring-node-group  # 모니터링 전용 (t3.medium, taint)
+├── Karpenter 오토스케일링  # 자동 노드 프로비저닝
+│   ├── Pod Identity 인증     # karpenter 네임스페이스/서비스계정
+│   ├── Spot 중단 처리       # SQS 큐를 통한 인스턴스 중단 핸들링
+│   └── EC2/IAM 권한        # 인스턴스 생성/종료, 프로파일 관리
 ├── 9개 EKS 애드온    # 모니터링, 보안, 인증서 관리
 │   ├── 기본 애드온: vpc-cni, kube-proxy, coredns, aws-ebs-csi-driver
 │   ├── 모니터링: kube-state-metrics, metrics-server, eks-node-monitoring-agent
@@ -555,10 +564,15 @@ AWS Managed Prometheus # 메트릭 수집/저장
 ### 👤 IAM 역할
 ```bash
 EKS 관련 역할:
-├── EKS Cluster Role     # 클러스터 서비스 역할
-├── EKS Node Group Role  # 노드 그룹 서비스 역할 (EFS, SSM 정책 포함)
-├── EBS CSI Driver Role  # EBS CSI 드라이버용 Pod Identity 역할
-└── ALB Controller Role  # Gateway API 컨트롤러 역할
+├── EKS Cluster Role      # 클러스터 서비스 역할
+├── EKS Node Group Role   # 노드 그룹 서비스 역할 (EFS, SSM 정책 포함)
+├── EBS CSI Driver Role   # EBS CSI 드라이버용 Pod Identity 역할
+├── Karpenter Controller  # 오토스케일링 컨트롤러 역할
+│   ├── EC2 인스턴스 생성/종료 권한
+│   ├── IAM 인스턴스 프로파일 관리
+│   ├── SQS 큐 접근 (Spot 중단 처리)
+│   └── Pod Identity Association
+└── ALB Controller Role   # Gateway API 컨트롤러 역할
 
 DynamoDB 관련 역할:
 ├── Application Role     # 전체 DynamoDB 접근
