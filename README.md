@@ -59,6 +59,7 @@ Traffic Tacos 프로젝트의 AWS 인프라를 Terraform으로 관리하는 Infr
     │   ├── karpenter.tf    # Karpenter 오토스케일링 설정
     │   ├── sg.tf           # EKS Security Group 정의
     │   ├── gateway.tf      # AWS Gateway API 컨트롤러 및 ALB 설정
+    │   ├── otel.tf         # OpenTelemetry Collector 설정 (현재 비활성화)
     │   ├── outputs.tf      # EKS 모듈 출력
     │   └── var.tf          # EKS 모듈 변수
     ├── dynamodb/            # DynamoDB 모듈
@@ -194,6 +195,7 @@ Kubernetes 클러스터와 관련 인프라를 프로비저닝합니다:
   - 모니터링: kube-state-metrics, metrics-server, eks-node-monitoring-agent
   - 인증서: cert-manager
   - 보안: eks-pod-identity-agent
+- **OpenTelemetry**: 현재 비활성화 (operator 사전 설치 필요)
 - **AWS Gateway API**: Kubernetes Gateway API 컨트롤러 및 ALB 통합 (Kubernetes 1.33에서는 비활성화)
 - **보안**: IAM 역할, 보안 그룹, VPC 엔드포인트
 - **네트워킹**: Private 서브넷 배치, 베스천 호스트 접근
