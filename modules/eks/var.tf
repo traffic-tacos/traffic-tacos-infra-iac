@@ -90,6 +90,11 @@ variable "eks_addons" {
     {
       name    = "metrics-server"
       version = "v0.8.0-eksbuild.2"
+    },
+    {
+      name    = "prometheus-node-exporter"
+      version = "v1.9.1-eksbuild.5"
+
     }
     # Note: aws-gateway-api-controller is not supported in Kubernetes 1.33
     # {
