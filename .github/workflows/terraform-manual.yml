@@ -6,13 +6,13 @@ on:
       target_module:
         description: "Terraform module to deploy (e.g. eks, ecr)"
         required: true
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - '**.tf'
-  #     - '**.tfvars'
-  #     - '.github/workflows/terraform.yml'
+  push:
+    branches:
+      - feature/yj
+    paths:
+      - '**.tf'
+      - '**.tfvars'
+      - '.github/workflows/*'
 
 env:
   TF_VERSION: '1.5.0'
