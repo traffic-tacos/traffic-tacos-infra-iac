@@ -6,6 +6,7 @@ on:
       target_module:
         description: "Terraform module to deploy (e.g. eks, ecr)"
         required: true
+        default: "ec2,eks,ecr,awsprometheus,awsgrafana'"
   push:
     branches:
       - feature/yj
