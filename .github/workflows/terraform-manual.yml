@@ -1,12 +1,7 @@
 name: 'Terraform Infrastructure Deployment (manual)'
 
 on:
-  workflow_dispatch:
-    inputs:
-      target_module:
-        description: "Terraform module to deploy (e.g. eks, ecr)"
-        required: true
-        default: "ec2,eks,ecr,awsprometheus,awsgrafana"
+  workflow_dispatch: {}
   push:
     branches:
       - feature/yj
@@ -77,8 +72,8 @@ jobs:
     - name: Terraform Plan
       id: plan
       run: |
-        terraform plan -target=module.${{ github.event.inputs.target_module }} -no-color -out=tfplan
-        terraform show -target=module.${{ github.event.inputs.target_module }} -no-color tfplan > plan.txt
+        terraform plan  -target=module.ec2 -target=module.eks -target=module.ecr -target=module.awsprometheus -target=module.awsgrafana -no-color -out=tfplan
+        terraform show  -target=module.ec2 -target=module.eks -target=module.ecr -target=module.awsprometheus -target=module.awsgrafana -no-color tfplan > plan.txt
       continue-on-error: true
 
     - name: Comment PR with Plan
@@ -151,11 +146,11 @@ jobs:
 
     - name: Terraform Plan
       working-directory: .
-      run: terraform plan -target=module.${{ github.event.inputs.target_module }} -out=tfplan
+      run: terraform plan -target=module.ec2 -target=module.eks -target=module.ecr -target=module.awsprometheus -target=module.awsgrafana -out=tfplan
 
     - name: Terraform Apply
       working-directory: .
-      run: terraform apply -target=module.${{ github.event.inputs.target_module }} -auto-approve tfplan
+      run: terraform apply -target=module.ec2 -target=module.eks -target=module.ecr -target=module.awsprometheus -target=module.awsgrafana -auto-approve tfplan
 
     - name: Terraform Output
       id: output
