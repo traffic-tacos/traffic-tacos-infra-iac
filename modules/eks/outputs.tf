@@ -52,3 +52,7 @@ output "alb_zone_id" {
   description = "ALB zone ID for Route53 alias"
   value       = local.alb_zone_id
 }
+
+output "cluster_sg" {
+  value = aws_security_group.eks_cluster.id
+}

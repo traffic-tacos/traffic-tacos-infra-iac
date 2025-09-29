@@ -266,6 +266,8 @@ module "elasticache" {
 
   automatic_failover_enabled = var.redis_automatic_failover_enabled
   multi_az_enabled           = var.redis_multi_az_enabled
+
+  cluster_sg = module.eks.cluster_sg
 }
 
 module "sqs" {

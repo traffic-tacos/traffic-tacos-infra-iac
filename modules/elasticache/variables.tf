@@ -122,3 +122,8 @@ variable "apply_immediately" {
   type        = bool
   default     = false
 }
+
+variable "cluster_sg" {
+  type = string
+
+}

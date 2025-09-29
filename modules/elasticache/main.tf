@@ -21,6 +21,14 @@ resource "aws_security_group" "redis" {
     description = "Redis access from VPC"
   }
 
+  ingress {
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
+    security_groups = [var.cluster_sg] # Replace with your EKS SG ID variable/output
+    description     = "Redis access from EKS Cluster Security Group"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
