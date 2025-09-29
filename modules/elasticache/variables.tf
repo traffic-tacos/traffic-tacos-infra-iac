@@ -125,5 +125,4 @@ variable "apply_immediately" {
 
 variable "cluster_sg" {
   type = string
-
 }

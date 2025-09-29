@@ -25,7 +25,7 @@ resource "aws_security_group" "redis" {
     from_port       = 6379
     to_port         = 6379
     protocol        = "tcp"
-    security_groups = [var.cluster_sg] # Replace with your EKS SG ID variable/output
+    security_groups = [var.cluster_sg]
     description     = "Redis access from EKS Cluster Security Group"
   }
 
