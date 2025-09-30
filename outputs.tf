@@ -10,8 +10,8 @@ output "hosted_zone_name_servers" {
 }
 
 output "api_record_fqdn" {
-  description = "FQDN of the API record"
-  value       = aws_route53_record.api.fqdn
+  description = "FQDN of the API record (managed by external-dns)"
+  value       = "api.${var.domain_name}"
 }
 
 output "www_record_fqdn" {

@@ -219,23 +219,9 @@ resource "aws_route53_record" "www" {
   depends_on = [module.cloudfront]
 }
 
-# Data source to reference existing ALB
-data "aws_lb" "existing_api_alb" {
-  name = "k8s-gateway-apitraff-bd9ec75eb6"
-}
-
-# Create API record pointing to existing ALB
-resource "aws_route53_record" "api" {
-  zone_id = module.route53.zone_id
-  name    = "api.${var.domain_name}"
-  type    = "A"
-
-  alias {
-    name                   = data.aws_lb.existing_api_alb.dns_name
-    zone_id                = data.aws_lb.existing_api_alb.zone_id
-    evaluate_target_health = true
-  }
-}
+# API record is automatically managed by external-dns in Kubernetes cluster
+# through Gateway API HTTPRoute resources
+# No need to manage it via Terraform
 
 # Create Bastion record for SSH access
 resource "aws_route53_record" "bastion" {
