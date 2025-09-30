@@ -219,21 +219,22 @@ resource "aws_route53_record" "www" {
   depends_on = [module.cloudfront]
 }
 
-# Create API record automatically from Gateway ALB
-resource "aws_route53_record" "api" {
-  count = module.eks.alb_hostname != "" ? 1 : 0
+# Data source to reference existing ALB
+data "aws_lb" "existing_api_alb" {
+  name = "k8s-gateway-apitraff-bd9ec75eb6"
+}
 
+# Create API record pointing to existing ALB
+resource "aws_route53_record" "api" {
   zone_id = module.route53.zone_id
   name    = "api.${var.domain_name}"
   type    = "A"
 
   alias {
-    name                   = module.eks.alb_hostname
-    zone_id                = module.eks.alb_zone_id
+    name                   = data.aws_lb.existing_api_alb.dns_name
+    zone_id                = data.aws_lb.existing_api_alb.zone_id
     evaluate_target_health = true
   }
-
-  depends_on = [module.eks]
 }
 
 # Create Bastion record for SSH access

@@ -11,7 +11,7 @@ output "hosted_zone_name_servers" {
 
 output "api_record_fqdn" {
   description = "FQDN of the API record"
-  value       = try(aws_route53_record.api[0].fqdn, "")
+  value       = aws_route53_record.api.fqdn
 }
 
 output "www_record_fqdn" {
