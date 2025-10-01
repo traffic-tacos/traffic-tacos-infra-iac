@@ -41,10 +41,10 @@ resource "aws_security_group_rule" "allowHTTPS" {
 }
 
 resource "aws_security_group_rule" "allowTeleport" {
-  type              = "ingress"
-  from_port         = 3025
-  to_port           = 3027
-  protocol          = "TCP"
+  type                     = "ingress"
+  from_port                = 3025
+  to_port                  = 3027
+  protocol                 = "TCP"
   source_security_group_id = aws_security_group.bastion.id
-  security_group_id = aws_security_group.bastion.id
+  security_group_id        = aws_security_group.bastion.id
 }
