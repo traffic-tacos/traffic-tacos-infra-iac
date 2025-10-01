@@ -30,3 +30,21 @@ resource "aws_security_group_rule" "allowGithub" {
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.bastion.id
 }
+
+resource "aws_security_group_rule" "allowHTTPS" {
+  type              = "ingress"
+  from_port         = "443"
+  to_port           = "443"
+  protocol          = "TCP"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.bastion.id
+}
+
+resource "aws_security_group_rule" "allowTeleport" {
+  type              = "ingress"
+  from_port         = "3025"
+  to_port           = "3027"
+  protocol          = "TCP"
+  source_security_group_id = aws_security_group.bastion.id
+  security_group_id = aws_security_group.bastion.id
+}
