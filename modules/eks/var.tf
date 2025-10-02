@@ -35,7 +35,11 @@ variable "mix_disk_size" {
 variable "monitoring_disk_size" {
   type    = number
   default = 30
+}
 
+variable "loadtest_disk_size" {
+  type    = number
+  default = 8
 }
 
 variable "bastion_host_ip" {
@@ -50,7 +54,6 @@ variable "bastion_host_ip" {
 variable "aws_account_id" {
   type    = string
   default = "137406935518"
-
 }
 
 variable "eks_addons" {
@@ -94,7 +97,6 @@ variable "eks_addons" {
     {
       name    = "prometheus-node-exporter"
       version = "v1.9.1-eksbuild.5"
-
     }
     # Note: aws-gateway-api-controller is not supported in Kubernetes 1.33
     # {

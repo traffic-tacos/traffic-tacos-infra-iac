@@ -48,7 +48,7 @@ resource "aws_eks_addon" "eks_addons" {
   cluster_name  = aws_eks_cluster.cluster.name
   addon_name    = each.value.name
   addon_version = each.value.version
-  depends_on    = [aws_eks_cluster.cluster, aws_eks_node_group.ondemand_node_group, aws_eks_node_group.mix_node_group, aws_eks_node_group.monitoring_node_group]
+  depends_on    = [aws_eks_cluster.cluster, aws_eks_node_group.ondemand_node_group, aws_eks_node_group.mix_node_group, aws_eks_node_group.monitoring_node_group, aws_eks_node_group.loadtest_node_group]
 }
 
 resource "aws_launch_template" "ondemand_lt" {
@@ -155,6 +155,42 @@ resource "aws_launch_template" "monitoring_lt" {
     Name                                        = "monitoring_lt"
     "eks:cluster-name"                          = "tiket-cluster"
     "eks:nodegroup-name"                        = "monitoring-node-group"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+  }
+}
+
+resource "aws_launch_template" "loadtest_lt" {
+  name                   = "loadtest_lt"
+  vpc_security_group_ids = [aws_security_group.eks_node.id, aws_security_group.eks_cluster.id]
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "loadtest-node"
+    }
+  }
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+
+    ebs {
+      volume_size           = var.loadtest_disk_size
+      volume_type           = "gp3"
+      delete_on_termination = true
+      encrypted             = true
+    }
+  }
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "optional"
+    http_put_response_hop_limit = 2
+  }
+
+  tags = {
+    Name                                        = "loadtest_lt"
+    "eks:cluster-name"                          = "tiket-cluster"
+    "eks:nodegroup-name"                        = "loadtest-node-group"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   }
 }
@@ -269,6 +305,48 @@ resource "aws_eks_node_group" "monitoring_node_group" {
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   }
   depends_on = [aws_launch_template.monitoring_lt,
+    aws_iam_role_policy_attachment.eks_worker_policy_attach,
+    aws_iam_role_policy_attachment.eks_worker_AmazonEC2ContainerRegistryReadOnly,
+    aws_iam_role_policy_attachment.eks_worker_AmazonEKS_CNI_Policy,
+  aws_iam_role_policy_attachment.eks_worker_AmazonEKSWorkerNodePolicy]
+}
+
+resource "aws_eks_node_group" "loadtest_node_group" {
+  cluster_name    = aws_eks_cluster.cluster.name
+  node_group_name = "loadtest-node-group"
+  node_role_arn   = aws_iam_role.eks_worker_role.arn
+  subnet_ids      = var.private_subnet_ids
+  capacity_type   = "ON_DEMAND"
+  ami_type        = "AL2023_x86_64_STANDARD"
+  instance_types  = ["t3.medium"]
+
+  launch_template {
+    id      = aws_launch_template.loadtest_lt.id
+    version = "$Latest"
+  }
+
+  taint {
+    key    = "workload"
+    value  = "loadtest"
+    effect = "NO_SCHEDULE"
+  }
+
+  scaling_config {
+    desired_size = 1
+    min_size     = 1
+    max_size     = 1
+  }
+
+  labels = {
+    "node-type"     = "loadtest"
+    "workload-type" = "loadtest"
+  }
+
+  tags = {
+    Name                                        = "loadtest-node-group"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+  }
+  depends_on = [aws_launch_template.loadtest_lt,
     aws_iam_role_policy_attachment.eks_worker_policy_attach,
     aws_iam_role_policy_attachment.eks_worker_AmazonEC2ContainerRegistryReadOnly,
     aws_iam_role_policy_attachment.eks_worker_AmazonEKS_CNI_Policy,
