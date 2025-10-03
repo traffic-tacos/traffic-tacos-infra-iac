@@ -138,3 +138,9 @@ variable "prometheus_workspace_endpoint" {
   type        = string
   default     = ""
 }
+
+variable "loadtest_disk_size" {
+  type    = number
+  default = 30
+
+}
