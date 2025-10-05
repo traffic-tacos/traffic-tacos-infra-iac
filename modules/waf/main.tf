@@ -1,12 +1,13 @@
 resource "aws_wafv2_web_acl" "cf_web_acl" {
   name        = var.waf_name
+  region      = "us-east-1"
   scope       = "CLOUDFRONT"
   description = var.waf_description
 
   # 규칙 공통 속성
   visibility_config {
     cloudwatch_metrics_enabled = var.cloudwatch_metrics_enabled
-    sampled_requests_enabled   = var.sampled_requests_enabled
+    sampled_requests_enabled   = var.sampled_requests_enabled   # 웹 요청 샘플을 저장할지 여부
     metric_name                = var.waf_name
   }
 
