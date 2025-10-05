@@ -73,6 +73,11 @@ output "eks_cluster_name" {
   value       = module.eks.cluster_name
 }
 
+output "keda_operator_role_arn" {
+  description = "IAM Role ARN for KEDA Operator"
+  value       = module.eks.keda_operator_role_arn
+}
+
 # Redis ElastiCache Outputs
 output "redis_replication_group_id" {
   description = "ID of the ElastiCache replication group"
