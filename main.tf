@@ -191,6 +191,28 @@ module "s3_static" {
   cors_allowed_origins        = ["https://${var.domain_name}", "https://www.${var.domain_name}"]
 }
 
+module "waf" {
+  source = "./modules/waf"
+
+  project_name = var.project_name
+  waf_name     = "${var.project_name}-waf"
+
+  api_path_prefix = "/api/v1"
+
+  bot_control_inspection_level = "COMMON"
+
+  captcha_labels = [
+    "awswaf:managed:aws:bot-control:signal:non_browser_user_agent",
+    "awswaf:managed:aws:bot-control:category:http_library",
+    "awswaf:managed:aws:bot-control:bot:known"
+  ]
+
+  tags = {
+    Environment = "production"
+    Project     = var.project_name
+  }
+}
+
 module "cloudfront" {
   source = "./modules/cloudfront"
 
@@ -200,8 +222,9 @@ module "cloudfront" {
   aliases                        = ["www.${var.domain_name}"]
   acm_certificate_arn            = aws_acm_certificate_validation.cloudfront.certificate_arn
   project_name                   = var.project_name
+  waf_web_acl_arn                = module.waf.web_acl_arn
 
-  depends_on = [aws_acm_certificate_validation.cloudfront]
+  depends_on = [aws_acm_certificate_validation.cloudfront, module.waf]
 }
 
 # Create WWW record after CloudFront is available

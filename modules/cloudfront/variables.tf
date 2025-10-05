@@ -47,3 +47,9 @@ variable "price_class" {
   type        = string
   default     = "PriceClass_100"
 }
+
+variable "waf_web_acl_arn" {
+  description = "ARN of the WAF Web ACL to associate with CloudFront"
+  type        = string
+  default     = null
+}

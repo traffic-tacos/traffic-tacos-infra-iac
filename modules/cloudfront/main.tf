@@ -17,6 +17,7 @@ resource "aws_cloudfront_distribution" "static_website" {
   is_ipv6_enabled     = true
   comment             = "CloudFront distribution for ${var.domain_name}"
   default_root_object = var.default_root_object
+  web_acl_id          = var.waf_web_acl_arn
 
   aliases = var.aliases
 
