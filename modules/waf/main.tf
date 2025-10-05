@@ -15,36 +15,6 @@ resource "aws_wafv2_web_acl" "cf_web_acl" {
     allow {}
   }
 
-  # API 경로 예외 규칙 (우선순위 0)
-  rule {
-    name     = "AllowAPIRequests"
-    priority = 0
-
-    action {
-      allow {}
-    }
-
-    statement {
-      byte_match_statement {
-        search_string = var.api_path_prefix
-        field_to_match {
-          uri_path {}
-        }
-        text_transformation {
-          priority = 0
-          type     = "LOWERCASE"
-        }
-        positional_constraint = "STARTS_WITH"
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = var.cloudwatch_metrics_enabled
-      sampled_requests_enabled   = var.sampled_requests_enabled
-      metric_name                = "AllowAPIRequests"
-    }
-  }
-
   # Bot Control 규칙 (우선순위 1)
   rule {
     name     = "BotControl"
@@ -110,6 +80,36 @@ resource "aws_wafv2_web_acl" "cf_web_acl" {
       cloudwatch_metrics_enabled = var.cloudwatch_metrics_enabled
       sampled_requests_enabled   = var.sampled_requests_enabled
       metric_name                = "CaptchaIfBot"
+    }
+  }
+
+  # API 경로 예외 규칙 (우선순위 10)
+  rule {
+    name     = "AllowAPIRequests"
+    priority = 10
+
+    action {
+      allow {}
+    }
+
+    statement {
+      byte_match_statement {
+        search_string = var.api_path_prefix
+        field_to_match {
+          uri_path {}
+        }
+        text_transformation {
+          priority = 0
+          type     = "LOWERCASE"
+        }
+        positional_constraint = "STARTS_WITH"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = var.cloudwatch_metrics_enabled
+      sampled_requests_enabled   = var.sampled_requests_enabled
+      metric_name                = "AllowAPIRequests"
     }
   }
 }
