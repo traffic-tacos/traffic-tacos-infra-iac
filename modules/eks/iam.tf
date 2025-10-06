@@ -321,4 +321,3 @@ resource "aws_iam_role_policy_attachment" "keda_operator_policy_attachment" {
   role       = aws_iam_role.keda_operator_role.name
   policy_arn = aws_iam_policy.keda_operator_policy.arn
 }
-
