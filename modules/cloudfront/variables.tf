@@ -37,13 +37,19 @@ variable "default_root_object" {
 }
 
 variable "error_document" {
-  description = "Error document for the website"
+  description = "Error document for the website (SPA should use index.html)"
   type        = string
-  default     = "error.html"
+  default     = "index.html"
 }
 
 variable "price_class" {
   description = "Price class for CloudFront distribution"
   type        = string
   default     = "PriceClass_100"
+}
+
+variable "waf_web_acl_arn" {
+  description = "ARN of the WAF Web ACL to associate with CloudFront"
+  type        = string
+  default     = null
 }

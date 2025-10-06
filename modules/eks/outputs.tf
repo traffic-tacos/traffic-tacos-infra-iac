@@ -56,3 +56,8 @@ output "alb_zone_id" {
 output "cluster_sg" {
   value = aws_security_group.eks_cluster.id
 }
+
+output "keda_operator_role_arn" {
+  description = "IAM Role ARN for KEDA Operator"
+  value       = aws_iam_role.keda_operator_role.arn
+}

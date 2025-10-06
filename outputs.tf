@@ -73,6 +73,11 @@ output "eks_cluster_name" {
   value       = module.eks.cluster_name
 }
 
+output "keda_operator_role_arn" {
+  description = "IAM Role ARN for KEDA Operator"
+  value       = module.eks.keda_operator_role_arn
+}
+
 # Redis ElastiCache Outputs
 output "redis_replication_group_id" {
   description = "ID of the ElastiCache replication group"
@@ -138,4 +143,20 @@ output "payment_webhook_dlq_arn" {
 output "payment_webhook_role_arn" {
   description = "Payment webhook SQS 접근 IAM 역할 ARN"
   value       = module.sqs.role_arn
+}
+
+# Gateway API & Users Table Outputs
+output "gateway_api_service_role_arn" {
+  description = "Gateway API 서비스 IAM 역할 ARN"
+  value       = module.dynamodb.gateway_api_service_role_arn
+}
+
+output "gateway_api_service_role_name" {
+  description = "Gateway API 서비스 IAM 역할 이름"
+  value       = module.dynamodb.gateway_api_service_role_name
+}
+
+output "users_table_info" {
+  description = "Users 테이블 정보"
+  value       = module.dynamodb.users_table
 }

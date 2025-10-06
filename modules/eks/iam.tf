@@ -147,6 +147,28 @@ resource "aws_iam_role_policy" "ecr_public_access" {
   })
 }
 
+# KEDA SQS Access Policy for Worker Nodes
+# This allows KEDA Operator to query SQS queues when using node IAM role
+# Note: This is a fallback. Prefer using IRSA (keda_operator_role) when possible
+resource "aws_iam_role_policy" "keda_sqs_access" {
+  name = "KEDASQSAccess"
+  role = aws_iam_role.eks_worker_role.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:GetQueueAttributes",
+          "sqs:GetQueueUrl",
+          "sqs:ListQueues"
+        ]
+        Resource = "arn:aws:sqs:*:*:traffic-tacos-*"
+      }
+    ]
+  })
+}
+
 # OIDC Provider for IRSA (IAM Roles for Service Accounts)
 # Use existing OIDC provider instead of creating a new one
 data "aws_iam_openid_connect_provider" "cluster" {
@@ -239,5 +261,64 @@ resource "aws_iam_policy" "otel_collector_policy" {
 resource "aws_iam_role_policy_attachment" "otel_collector_policy_attachment" {
   role       = aws_iam_role.otel_collector_role.name
   policy_arn = aws_iam_policy.otel_collector_policy.arn
+}
+
+# KEDA Operator IAM Role for Service Account
+data "aws_iam_policy_document" "keda_operator_assume_role_policy" {
+  statement {
+    effect = "Allow"
+    principals {
+      type        = "Federated"
+      identifiers = [data.aws_iam_openid_connect_provider.cluster.arn]
+    }
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_eks_cluster.cluster.identity[0].oidc[0].issuer, "https://", "")}:sub"
+      values   = ["system:serviceaccount:keda:keda-operator"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_eks_cluster.cluster.identity[0].oidc[0].issuer, "https://", "")}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "keda_operator_role" {
+  name               = "${var.cluster_name}-keda-operator-role"
+  assume_role_policy = data.aws_iam_policy_document.keda_operator_assume_role_policy.json
+
+  tags = {
+    Name = "${var.cluster_name}-keda-operator-role"
+  }
+}
+
+# KEDA Operator IAM Policy for SQS Access
+resource "aws_iam_policy" "keda_operator_policy" {
+  name        = "${var.cluster_name}-keda-operator-policy"
+  description = "IAM policy for KEDA Operator to access SQS queues"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:GetQueueAttributes",
+          "sqs:GetQueueUrl",
+          "sqs:ListQueues"
+        ]
+        Resource = "arn:aws:sqs:*:*:traffic-tacos-*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "keda_operator_policy_attachment" {
+  role       = aws_iam_role.keda_operator_role.name
+  policy_arn = aws_iam_policy.keda_operator_policy.arn
 }
 
