@@ -84,15 +84,18 @@ resource "aws_cloudfront_distribution" "static_website" {
     minimum_protocol_version = "TLSv1.2_2021"
   }
 
+  # SPA용 에러 페이지 설정 - 클라이언트 사이드 라우팅을 위해 모든 404를 index.html로
   custom_error_response {
-    error_code         = 403
-    response_code      = 200
-    response_page_path = "/${var.error_document}"
+    error_code            = 403
+    response_code         = 200
+    response_page_path    = "/${var.error_document}"
+    error_caching_min_ttl = 300
   }
 
   custom_error_response {
-    error_code         = 404
-    response_code      = 200
-    response_page_path = "/${var.error_document}"
+    error_code            = 404
+    response_code         = 200
+    response_page_path    = "/${var.error_document}"
+    error_caching_min_ttl = 300
   }
 }
