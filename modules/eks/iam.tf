@@ -142,6 +142,28 @@ resource "aws_iam_role_policy" "ecr_public_access" {
   })
 }
 
+# KEDA SQS Access Policy for Worker Nodes
+# This allows KEDA Operator to query SQS queues when using node IAM role
+# Note: This is a fallback. Prefer using IRSA (keda_operator_role) when possible
+resource "aws_iam_role_policy" "keda_sqs_access" {
+  name = "KEDASQSAccess"
+  role = aws_iam_role.eks_worker_role.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:GetQueueAttributes",
+          "sqs:GetQueueUrl",
+          "sqs:ListQueues"
+        ]
+        Resource = "arn:aws:sqs:*:*:traffic-tacos-*"
+      }
+    ]
+  })
+}
+
 # OIDC Provider for IRSA (IAM Roles for Service Accounts)
 # Use existing OIDC provider instead of creating a new one
 data "aws_iam_openid_connect_provider" "cluster" {
