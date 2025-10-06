@@ -29,6 +29,24 @@ module "dynamodb" {
   source = "./modules/dynamodb"
 
   tables = [
+    # Gateway API - Users table for authentication
+    {
+      name      = "users"
+      hash_key  = "user_id"
+      range_key = null
+      attributes = [
+        { name = "user_id", type = "S" },
+        { name = "username", type = "S" }
+      ]
+      global_secondary_indexes = [
+        {
+          name            = "username-index"
+          hash_key        = "username"
+          range_key       = null
+          projection_type = "ALL"
+        }
+      ]
+    },
     # Ticket service tables
     {
       name      = "tickets"
