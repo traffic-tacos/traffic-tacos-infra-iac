@@ -95,13 +95,17 @@ locals {
 
 resource "aws_elasticache_replication_group" "redis" {
   replication_group_id = var.cluster_name
-  description          = "Redis cluster for ${var.project_name}"
+  description          = var.cluster_mode_enabled ? "Redis Cluster (${var.num_node_groups} shards) for ${var.project_name}" : "Redis Replication Group for ${var.project_name}"
 
   node_type            = var.node_type
   port                 = 6379
   parameter_group_name = aws_elasticache_parameter_group.redis.name
 
-  num_cache_clusters = var.num_cache_clusters
+  # Cluster mode: use num_node_groups and replicas_per_node_group
+  # Non-cluster mode: use num_cache_clusters
+  num_cache_clusters         = var.cluster_mode_enabled ? null : var.num_cache_clusters
+  num_node_groups            = var.cluster_mode_enabled ? var.num_node_groups : null
+  replicas_per_node_group    = var.cluster_mode_enabled ? var.replicas_per_node_group : null
 
   engine         = "redis"
   engine_version = var.engine_version
@@ -114,7 +118,7 @@ resource "aws_elasticache_replication_group" "redis" {
   auth_token                 = local.redis_auth_token
   auth_token_update_strategy = "ROTATE"
 
-  automatic_failover_enabled = var.automatic_failover_enabled
+  automatic_failover_enabled = var.cluster_mode_enabled ? true : var.automatic_failover_enabled
   multi_az_enabled           = var.multi_az_enabled
 
   snapshot_retention_limit = var.snapshot_retention_limit
@@ -129,5 +133,6 @@ resource "aws_elasticache_replication_group" "redis" {
     Name      = "${var.cluster_name}-redis"
     Project   = var.project_name
     ManagedBy = "terraform"
+    Mode      = var.cluster_mode_enabled ? "cluster" : "replication"
   }
 }

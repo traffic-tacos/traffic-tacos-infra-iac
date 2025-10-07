@@ -288,9 +288,17 @@ module "elasticache" {
   vpc_cidr           = module.vpc.vpc_cidr
   private_subnet_ids = module.vpc.db_subnet
 
-  node_type          = var.redis_node_type
+  node_type = var.redis_node_type
+
+  # Cluster mode configuration (sharding for write-heavy workload)
+  cluster_mode_enabled    = true # Enable Redis Cluster mode for horizontal write scaling
+  num_node_groups         = 3    # 3 shards = 3x write capacity
+  replicas_per_node_group = 1    # 1 replica per shard for HA
+
+  # Legacy replication mode (only used if cluster_mode_enabled = false)
   num_cache_clusters = var.redis_num_cache_clusters
-  engine_version     = var.redis_engine_version
+
+  engine_version = var.redis_engine_version
 
   at_rest_encryption_enabled = var.redis_at_rest_encryption_enabled
   transit_encryption_enabled = var.redis_transit_encryption_enabled

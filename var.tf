@@ -37,7 +37,11 @@ variable "project_name" {
 variable "redis_node_type" {
   description = "Instance type for ElastiCache Redis nodes"
   type        = string
-  default     = "cache.r7g.large" # Upgraded from cache.t3.micro for 30k RPS support
+  # Options for write-heavy workload:
+  # - cache.c7i.xlarge: Best single-thread performance (Intel), 6.38GB RAM
+  # - cache.c7i.2xlarge: More CPU power (8 cores), 12.88GB RAM
+  # - cache.r7i.large: Intel with more memory (13.07GB), better than r7g
+  default     = "cache.c7i.xlarge" # Optimized for write-heavy workload (was r7g.large)
 }
 
 variable "redis_num_cache_clusters" {
