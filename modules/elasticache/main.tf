@@ -52,6 +52,16 @@ resource "aws_elasticache_parameter_group" "redis" {
   family = var.parameter_group_family
   name   = "${var.cluster_name}-redis-params"
 
+  # Cluster mode parameter (required for Redis Cluster)
+  dynamic "parameter" {
+    for_each = var.cluster_mode_enabled ? [1] : []
+    content {
+      name  = "cluster-enabled"
+      value = "yes"
+    }
+  }
+
+  # User-defined parameters
   dynamic "parameter" {
     for_each = var.parameters
     content {
