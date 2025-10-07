@@ -39,11 +39,11 @@ data "aws_iam_policy_document" "eks_worker_assume_role_policy" {
 resource "aws_iam_role" "eks_worker_role" {
   name               = "${var.cluster_name}-eks-worker-role"
   assume_role_policy = data.aws_iam_policy_document.eks_worker_assume_role_policy.json
-  
+
   lifecycle {
     ignore_changes = [managed_policy_arns]
   }
-  
+
   tags = {
     Name = "${var.cluster_name}-eks-worker-role"
   }
