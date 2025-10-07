@@ -41,7 +41,7 @@ variable "redis_node_type" {
   # - cache.c7i.xlarge: Best single-thread performance (Intel), 6.38GB RAM
   # - cache.c7i.2xlarge: More CPU power (8 cores), 12.88GB RAM
   # - cache.r7i.large: Intel with more memory (13.07GB), better than r7g
-  default     = "cache.c7i.xlarge" # Optimized for write-heavy workload (was r7g.large)
+  default = "cache.c7i.xlarge" # Optimized for write-heavy workload (was r7g.large)
 }
 
 variable "redis_num_cache_clusters" {

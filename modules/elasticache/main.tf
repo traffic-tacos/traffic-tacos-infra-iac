@@ -103,9 +103,9 @@ resource "aws_elasticache_replication_group" "redis" {
 
   # Cluster mode: use num_node_groups and replicas_per_node_group
   # Non-cluster mode: use num_cache_clusters
-  num_cache_clusters         = var.cluster_mode_enabled ? null : var.num_cache_clusters
-  num_node_groups            = var.cluster_mode_enabled ? var.num_node_groups : null
-  replicas_per_node_group    = var.cluster_mode_enabled ? var.replicas_per_node_group : null
+  num_cache_clusters      = var.cluster_mode_enabled ? null : var.num_cache_clusters
+  num_node_groups         = var.cluster_mode_enabled ? var.num_node_groups : null
+  replicas_per_node_group = var.cluster_mode_enabled ? var.replicas_per_node_group : null
 
   engine         = "redis"
   engine_version = var.engine_version
