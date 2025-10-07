@@ -37,7 +37,7 @@ variable "project_name" {
 variable "redis_node_type" {
   description = "Instance type for ElastiCache Redis nodes"
   type        = string
-  default     = "cache.t3.micro"
+  default     = "cache.r7g.large" # Upgraded from cache.t3.micro for 30k RPS support
 }
 
 variable "redis_num_cache_clusters" {
