@@ -298,6 +298,7 @@ module "elasticache" {
 
   automatic_failover_enabled = var.redis_automatic_failover_enabled
   multi_az_enabled           = var.redis_multi_az_enabled
+  apply_immediately          = true # Apply changes immediately instead of waiting for maintenance window
 
   cluster_sg = module.eks.cluster_sg
 }
