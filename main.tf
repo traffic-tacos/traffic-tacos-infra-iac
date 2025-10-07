@@ -292,7 +292,7 @@ module "elasticache" {
 
   # Cluster mode configuration (sharding for write-heavy workload)
   cluster_mode_enabled    = true # Enable Redis Cluster mode for horizontal write scaling
-  num_node_groups         = 3    # 3 shards = 3x write capacity
+  num_node_groups         = 5    # 5 shards = 5x write capacity (increased due to 99% CPU peak)
   replicas_per_node_group = 1    # 1 replica per shard for HA
 
   # Legacy replication mode (only used if cluster_mode_enabled = false)
