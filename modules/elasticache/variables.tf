@@ -155,13 +155,13 @@ variable "enable_auto_scaling" {
 variable "min_node_groups" {
   description = "Minimum number of node groups (shards) for auto scaling"
   type        = number
-  default     = 6
+  default     = 12
 }
 
 variable "max_node_groups" {
   description = "Maximum number of node groups (shards) for auto scaling"
   type        = number
-  default     = 15
+  default     = 20
 }
 
 variable "target_cpu_utilization" {
