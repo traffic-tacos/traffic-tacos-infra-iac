@@ -155,7 +155,7 @@ variable "enable_auto_scaling" {
 variable "min_node_groups" {
   description = "Minimum number of node groups (shards) for auto scaling"
   type        = number
-  default     = 12
+  default     = 8
 }
 
 variable "max_node_groups" {
