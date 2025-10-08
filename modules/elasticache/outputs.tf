@@ -47,3 +47,13 @@ output "auth_token_secret_name" {
   description = "Name of the Secrets Manager secret containing the AUTH token"
   value       = var.auth_token_secret_name
 }
+
+output "auto_scaling_enabled" {
+  description = "Whether auto scaling is enabled"
+  value       = var.enable_auto_scaling
+}
+
+output "auto_scaling_policy_arn" {
+  description = "ARN of the auto scaling policy (if enabled)"
+  value       = var.enable_auto_scaling && var.cluster_mode_enabled ? aws_appautoscaling_policy.redis_cluster_cpu[0].arn : null
+}

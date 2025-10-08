@@ -144,3 +144,28 @@ variable "apply_immediately" {
 variable "cluster_sg" {
   type = string
 }
+
+# Auto Scaling variables
+variable "enable_auto_scaling" {
+  description = "Enable auto scaling for Redis Cluster mode"
+  type        = bool
+  default     = false
+}
+
+variable "min_node_groups" {
+  description = "Minimum number of node groups (shards) for auto scaling"
+  type        = number
+  default     = 3
+}
+
+variable "max_node_groups" {
+  description = "Maximum number of node groups (shards) for auto scaling"
+  type        = number
+  default     = 10
+}
+
+variable "target_cpu_utilization" {
+  description = "Target CPU utilization percentage for auto scaling (recommended: 50-70)"
+  type        = number
+  default     = 70
+}

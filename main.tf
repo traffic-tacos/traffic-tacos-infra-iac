@@ -308,6 +308,12 @@ module "elasticache" {
   multi_az_enabled           = var.redis_multi_az_enabled
   apply_immediately          = true # Apply changes immediately instead of waiting for maintenance window
 
+  # Auto Scaling configuration
+  enable_auto_scaling    = true # Enable auto scaling based on CPU
+  min_node_groups        = 3    # Minimum 3 shards
+  max_node_groups        = 10   # Maximum 10 shards
+  target_cpu_utilization = 70   # Scale out when CPU > 70%
+
   cluster_sg = module.eks.cluster_sg
 }
 
