@@ -53,3 +53,24 @@ output "reservation_tables" {
     if startswith(table.name, "${var.name}-reservation-")
   }
 }
+
+output "gateway_api_service_role_arn" {
+  description = "Gateway API 서비스 역할 ARN"
+  value       = aws_iam_role.gateway_api_service_role.arn
+}
+
+output "gateway_api_service_role_name" {
+  description = "Gateway API 서비스 역할 이름"
+  value       = aws_iam_role.gateway_api_service_role.name
+}
+
+output "users_table" {
+  description = "Users 테이블 정보"
+  value = {
+    for k, table in aws_dynamodb_table.table : k => {
+      name = table.name
+      arn  = table.arn
+    }
+    if endswith(table.name, "-users")
+  }
+}

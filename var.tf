@@ -37,7 +37,11 @@ variable "project_name" {
 variable "redis_node_type" {
   description = "Instance type for ElastiCache Redis nodes"
   type        = string
-  default     = "cache.t3.micro"
+  # Options for write-heavy workload (ElastiCache supported types):
+  # - cache.m7g.xlarge: Graviton3 (4 vCPU, 14.12GB) + Enhanced I/O Multiplexing ⭐ BEST
+  # - cache.m6i.xlarge: Intel Xeon (4 vCPU, 12.93GB) - Good alternative
+  # - cache.m7g.large: Graviton3 (2 vCPU, 6.81GB) - NO Enhanced I/O Multiplexing
+  default = "cache.m7g.xlarge" # Graviton3 with Enhanced I/O Multiplexing for write-heavy workload
 }
 
 variable "redis_num_cache_clusters" {
@@ -47,9 +51,9 @@ variable "redis_num_cache_clusters" {
 }
 
 variable "redis_engine_version" {
-  description = "Redis engine version"
+  description = "Redis engine version (7.1+ required for Enhanced I/O Multiplexing)"
   type        = string
-  default     = "7.0"
+  default     = "7.1" # Required for Enhanced I/O Multiplexing with cache.m7g.xlarge
 }
 
 variable "redis_at_rest_encryption_enabled" {

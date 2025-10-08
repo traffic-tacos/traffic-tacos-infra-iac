@@ -144,3 +144,19 @@ output "payment_webhook_role_arn" {
   description = "Payment webhook SQS 접근 IAM 역할 ARN"
   value       = module.sqs.role_arn
 }
+
+# Gateway API & Users Table Outputs
+output "gateway_api_service_role_arn" {
+  description = "Gateway API 서비스 IAM 역할 ARN"
+  value       = module.dynamodb.gateway_api_service_role_arn
+}
+
+output "gateway_api_service_role_name" {
+  description = "Gateway API 서비스 IAM 역할 이름"
+  value       = module.dynamodb.gateway_api_service_role_name
+}
+
+output "users_table_info" {
+  description = "Users 테이블 정보"
+  value       = module.dynamodb.users_table
+}

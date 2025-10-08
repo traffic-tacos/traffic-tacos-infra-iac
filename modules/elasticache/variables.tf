@@ -32,9 +32,27 @@ variable "node_type" {
 }
 
 variable "num_cache_clusters" {
-  description = "Number of cache clusters (nodes) in the replication group"
+  description = "Number of cache clusters (nodes) in the replication group (only for non-cluster mode)"
   type        = number
-  default     = 2
+  default     = null
+}
+
+variable "cluster_mode_enabled" {
+  description = "Enable Redis Cluster mode (sharding). If true, uses num_node_groups and replicas_per_node_group instead of num_cache_clusters"
+  type        = bool
+  default     = false
+}
+
+variable "num_node_groups" {
+  description = "Number of node groups (shards) for Redis Cluster mode. Recommended: 3-5 for write-heavy workload"
+  type        = number
+  default     = 3
+}
+
+variable "replicas_per_node_group" {
+  description = "Number of replica nodes per shard in cluster mode"
+  type        = number
+  default     = 1
 }
 
 variable "engine_version" {

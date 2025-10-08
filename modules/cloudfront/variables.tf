@@ -37,9 +37,9 @@ variable "default_root_object" {
 }
 
 variable "error_document" {
-  description = "Error document for the website"
+  description = "Error document for the website (SPA should use index.html)"
   type        = string
-  default     = "error.html"
+  default     = "index.html"
 }
 
 variable "price_class" {
