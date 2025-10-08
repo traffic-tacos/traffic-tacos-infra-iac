@@ -146,3 +146,35 @@ resource "aws_elasticache_replication_group" "redis" {
     Mode      = var.cluster_mode_enabled ? "cluster" : "replication"
   }
 }
+
+# Auto Scaling for Redis Cluster (only in cluster mode)
+resource "aws_appautoscaling_target" "redis_cluster" {
+  count = var.cluster_mode_enabled && var.enable_auto_scaling ? 1 : 0
+
+  max_capacity       = var.max_node_groups
+  min_capacity       = var.min_node_groups
+  resource_id        = "replication-group/${aws_elasticache_replication_group.redis.id}"
+  scalable_dimension = "elasticache:replication-group:NodeGroups"
+  service_namespace  = "elasticache"
+}
+
+# Auto Scaling Policy - Target Tracking based on CPU
+resource "aws_appautoscaling_policy" "redis_cluster_cpu" {
+  count = var.cluster_mode_enabled && var.enable_auto_scaling ? 1 : 0
+
+  name               = "${var.cluster_name}-redis-cpu-scaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.redis_cluster[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.redis_cluster[0].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.redis_cluster[0].service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ElastiCachePrimaryEngineCPUUtilization"
+    }
+
+    target_value       = var.target_cpu_utilization
+    scale_in_cooldown  = 300 # 5분 - scale in 대기 시간
+    scale_out_cooldown = 60  # 1분 - scale out 대기 시간
+  }
+}
