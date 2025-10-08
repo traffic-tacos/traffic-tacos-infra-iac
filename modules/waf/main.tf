@@ -34,6 +34,26 @@ resource "aws_wafv2_web_acl" "cf_web_acl" {
             inspection_level = var.bot_control_inspection_level
           }
         }
+
+        # 테스트용 User-Agent 제외
+        scope_down_statement {
+          not_statement {
+            byte_match_statement {
+              search_string = "hey/0.0.1"
+              field_to_match {
+                single_header {
+                  name = "user-agent"
+                }
+              }
+              positional_constraint = "EXACTLY"
+              text_transformation {
+                priority = 0
+                type     = "NONE"
+              }
+            }
+          }
+        }
+
       }
     }
 
