@@ -107,7 +107,7 @@ resource "aws_wafv2_web_acl" "cf_web_acl" {
 
   # Rate Limit 규칙
   rule {
-    name     = "RBR_APIv1_UserAgentIP"
+    name     = "RBR_APIv1_IP"
     priority = 5
 
     action {
@@ -131,9 +131,9 @@ resource "aws_wafv2_web_acl" "cf_web_acl" {
         #   }
         # }
 
-        custom_key {
-          ip {}
-        }
+        # custom_key {
+        #   ip {}
+        # }
 
         scope_down_statement {
           byte_match_statement {
