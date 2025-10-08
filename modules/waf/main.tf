@@ -116,20 +116,20 @@ resource "aws_wafv2_web_acl" "cf_web_acl" {
 
     statement {
       rate_based_statement {
-        limit                 = 100
+        limit                 = 1000
         evaluation_window_sec = 60
-        aggregate_key_type    = "CUSTOM_KEYS"
+        aggregate_key_type    = "IP" # User-Agent 검사할 경우 "CUSTOM_KEYS"
 
         # customKeys: (User-Agent, IP)로 버킷을 묶어 집계
-        custom_key {
-          header {
-            name = "User-Agent"
-            text_transformation {
-              priority = 0
-              type     = "NONE"
-            }
-          }
-        }
+        # custom_key {
+        #   header {
+        #     name = "User-Agent"
+        #     text_transformation {
+        #       priority = 0
+        #       type     = "NONE"
+        #     }
+        #   }
+        # }
 
         custom_key {
           ip {}
@@ -158,33 +158,33 @@ resource "aws_wafv2_web_acl" "cf_web_acl" {
     }
   }
 
-  # API 경로 예외 규칙
-  rule {
-    name     = "AllowAPIRequests"
-    priority = 10
+  #   # API 경로 예외 규칙
+  #   rule {
+  #     name     = "AllowAPIRequests"
+  #     priority = 10
 
-    action {
-      allow {}
-    }
+  #     action {
+  #       allow {}
+  #     }
 
-    statement {
-      byte_match_statement {
-        search_string = var.api_path_prefix
-        field_to_match {
-          uri_path {}
-        }
-        text_transformation {
-          priority = 0
-          type     = "LOWERCASE"
-        }
-        positional_constraint = "STARTS_WITH"
-      }
-    }
+  #     statement {
+  #       byte_match_statement {
+  #         search_string = var.api_path_prefix
+  #         field_to_match {
+  #           uri_path {}
+  #         }
+  #         text_transformation {
+  #           priority = 0
+  #           type     = "LOWERCASE"
+  #         }
+  #         positional_constraint = "STARTS_WITH"
+  #       }
+  #     }
 
-    visibility_config {
-      cloudwatch_metrics_enabled = var.cloudwatch_metrics_enabled
-      sampled_requests_enabled   = var.sampled_requests_enabled
-      metric_name                = "AllowAPIRequests"
-    }
-  }
+  #     visibility_config {
+  #       cloudwatch_metrics_enabled = var.cloudwatch_metrics_enabled
+  #       sampled_requests_enabled   = var.sampled_requests_enabled
+  #       metric_name                = "AllowAPIRequests"
+  #     }
+  #   }
 }
