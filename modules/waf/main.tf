@@ -15,7 +15,7 @@ resource "aws_wafv2_web_acl" "cf_web_acl" {
     allow {}
   }
 
-  # Bot Control 규칙 (우선순위 1)
+  # Bot Control 규칙
   rule {
     name     = "BotControl"
     priority = 1
@@ -44,7 +44,7 @@ resource "aws_wafv2_web_acl" "cf_web_acl" {
     }
   }
 
-  # CAPTCHA 규칙 (우선순위 2)
+  # CAPTCHA 규칙
   rule {
     name     = "CaptchaIfBot"
     priority = 2
@@ -83,7 +83,60 @@ resource "aws_wafv2_web_acl" "cf_web_acl" {
     }
   }
 
-  # API 경로 예외 규칙 (우선순위 10)
+  # Rate Limit 규칙
+  rule {
+    name     = "RBR_APIv1_UserAgentIP"
+    priority = 5
+
+    action {
+      block {}
+    }
+
+    statement {
+      rate_based_statement {
+        limit                 = 100
+        evaluation_window_sec = 60
+        aggregate_key_type    = "CUSTOM_KEYS"
+
+        # customKeys: (User-Agent, IP)로 버킷을 묶어 집계
+        custom_key {
+          header {
+            name = "User-Agent"
+            text_transformation {
+              priority = 0
+              type     = "NONE"
+            }
+          }
+        }
+
+        custom_key {
+          ip {}
+        }
+
+        scope_down_statement {
+          byte_match_statement {
+            search_string = "/" # 혹은 var.api_path_prefix
+            field_to_match {
+              uri_path {}
+            }
+            positional_constraint = "STARTS_WITH"
+            text_transformation {
+              priority = 0
+              type     = "NONE"
+            }
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = var.cloudwatch_metrics_enabled
+      sampled_requests_enabled   = var.sampled_requests_enabled
+      metric_name                = "RBR_APIv1_UserAgentIP"
+    }
+  }
+
+  # API 경로 예외 규칙
   rule {
     name     = "AllowAPIRequests"
     priority = 10
