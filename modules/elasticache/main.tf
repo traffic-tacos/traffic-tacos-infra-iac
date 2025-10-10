@@ -50,7 +50,7 @@ resource "aws_security_group" "redis" {
 
 resource "aws_elasticache_parameter_group" "redis" {
   family = var.parameter_group_family
-  name   = "${var.cluster_name}-redis-params"
+  name   = "${var.cluster_name}-redis-params-v2" # v2로 변경하여 새 파라미터 그룹 생성
 
   # Cluster mode parameter (required for Redis Cluster)
   dynamic "parameter" {
@@ -74,6 +74,10 @@ resource "aws_elasticache_parameter_group" "redis" {
     Name      = "${var.cluster_name}-redis-params"
     Project   = var.project_name
     ManagedBy = "terraform"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
