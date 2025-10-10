@@ -288,15 +288,15 @@ module "elasticache" {
   vpc_cidr           = module.vpc.vpc_cidr
   private_subnet_ids = module.vpc.db_subnet
 
-  node_type = var.redis_node_type
+  node_type = "cache.t3.micro" # 최소 스펙
 
   # Cluster mode configuration (sharding for write-heavy workload)
-  cluster_mode_enabled    = true # Enable Redis Cluster mode for horizontal write scaling
-  num_node_groups         = 8    # 8 shards = 8x write capacity (16 nodes total)
-  replicas_per_node_group = 1    # 1 replica per shard for HA
+  cluster_mode_enabled    = false # 클러스터 모드 비활성화 (비용 절감)
+  num_node_groups         = null  # 클러스터 모드 비활성화 시 사용 안 함
+  replicas_per_node_group = null  # 클러스터 모드 비활성화 시 사용 안 함
 
   # Legacy replication mode (only used if cluster_mode_enabled = false)
-  num_cache_clusters = var.redis_num_cache_clusters
+  num_cache_clusters = 1 # 단일 노드 (최소 스펙)
 
   engine_version = var.redis_engine_version
 
@@ -304,15 +304,15 @@ module "elasticache" {
   transit_encryption_enabled = var.redis_transit_encryption_enabled
   auth_token_secret_name     = var.redis_auth_token_secret_name
 
-  automatic_failover_enabled = var.redis_automatic_failover_enabled
-  multi_az_enabled           = var.redis_multi_az_enabled
-  apply_immediately          = true # Apply changes immediately instead of waiting for maintenance window
+  automatic_failover_enabled = false # 단일 노드일 경우 불필요
+  multi_az_enabled           = false # 단일 노드일 경우 불필요
+  apply_immediately          = true  # Apply changes immediately instead of waiting for maintenance window
 
   # Auto Scaling configuration
-  enable_auto_scaling    = true # Enable auto scaling based on CPU
-  min_node_groups        = 8    # Minimum 8 shards (16 nodes) - ensure sufficient baseline capacity
-  max_node_groups        = 20   # Maximum 20 shards (40 nodes) - room for traffic spikes
-  target_cpu_utilization = 70   # Scale out when CPU > 70%
+  enable_auto_scaling    = false # 오토스케일링 비활성화 (비용 절감)
+  min_node_groups        = null  # 오토스케일링 비활성화 시 사용 안 함
+  max_node_groups        = null  # 오토스케일링 비활성화 시 사용 안 함
+  target_cpu_utilization = 70    # Scale out when CPU > 70%
 
   cluster_sg = module.eks.cluster_sg
 }
