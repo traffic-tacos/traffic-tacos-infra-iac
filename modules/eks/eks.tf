@@ -272,9 +272,9 @@ resource "aws_eks_node_group" "monitoring_node_group" {
   }
 
   scaling_config {
-    desired_size = 2
-    min_size     = 2
-    max_size     = 3
+    desired_size = 1    # 2 → 1 (비용 최소화)
+    min_size     = 1    # 2 → 1
+    max_size     = 2    # 3 → 2
   }
 
   labels = {
@@ -314,9 +314,9 @@ resource "aws_eks_node_group" "loadtest_node_group" {
   }
 
   scaling_config {
-    desired_size = 2
-    min_size     = 2
-    max_size     = 3
+    desired_size = 0    # 2 → 0 (테스트 시에만 사용, 평상시 0)
+    min_size     = 0    # 2 → 0
+    max_size     = 2    # 3 → 2
   }
 
   labels = {
