@@ -282,7 +282,7 @@ resource "aws_route53_record" "bastion" {
 module "elasticache" {
   source = "./modules/elasticache"
 
-  cluster_name       = "${var.project_name}-redis"
+  cluster_name       = "${var.project_name}-redis-v2" # v2로 변경하여 새 클러스터 생성
   project_name       = var.project_name
   vpc_id             = module.vpc.vpc_id
   vpc_cidr           = module.vpc.vpc_cidr
